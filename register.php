@@ -1,14 +1,9 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tạo tài khoản - LeaderClub</title>
-    <link rel="stylesheet" href="register.css">
-</head>
-<body>
+<?php 
+$page_type = 'login';
+require('widget/top.php'); 
+?>
     <div class="container">
-        <!-- Nút quay lại -->
+       
         <button class="back-btn" onclick="window.location.href = 'trangchu.php'">← Quay lại</button>
         
         <div class="register-box">
@@ -56,14 +51,14 @@
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                eyeIcon.src = 'eye.svg.png';
+                eyeIcon.src = 'image/eye.svg.png';
             } else {
                 passwordInput.type = 'password';
-                eyeIcon.src = 'eye-off.svg.png';
+                eyeIcon.src = 'image/eye-off.svg.png';
             }
         }
         
-        // Xử lý form đăng ký
+        
         document.querySelector('.register-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -71,36 +66,59 @@
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
             
-            // Kiểm tra validation
+            
             if (!username || !password || !confirmPassword) {
                 alert('Vui lòng điền đầy đủ thông tin!');
                 return;
             }
             
-            // Kiểm tra username chỉ chứa chữ và số
+           
             const usernameRegex = /^[a-zA-Z0-9]+$/;
             if (!usernameRegex.test(username)) {
                 alert('Tên đăng nhập chỉ được dùng chữ và số!');
                 return;
             }
             
-            // Kiểm tra độ dài mật khẩu
+            
             if (password.length < 8) {
                 alert('Mật khẩu phải có ít nhất 8 ký tự!');
                 return;
             }
             
-            // Kiểm tra mật khẩu khớp
+            
             if (password !== confirmPassword) {
                 alert('Mật khẩu nhập lại không khớp!');
                 return;
             }
             
-            // Nếu tất cả validation passed
+            
             alert('Tạo tài khoản thành công!');
-            // Chuyển hướng đến trang đăng nhập
+            
             window.location.href = 'login.php';
         });
+
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const eyeIcons = document.querySelectorAll('.eye-icon');
+            
+            eyeIcons.forEach(icon => {
+                
+                const testImage = new Image();
+                testImage.onerror = function() {
+                   
+                    const originalSrc = icon.src;
+                    if (!originalSrc.includes('image/')) {
+                        if (originalSrc.includes('eye-closed.png')) {
+                            icon.src = 'image/eye-off.svg.png';
+                        } else if (originalSrc.includes('eye.svg.png')) {
+                            icon.src = 'image/eye.svg.png';
+                        }
+                    }
+                };
+                testImage.src = icon.src;
+            });
+        });
+        
     </script>
 </body>
 </html>

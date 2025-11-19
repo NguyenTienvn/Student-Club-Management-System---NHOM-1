@@ -1,12 +1,7 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập LeaderClub</title>
-    <link rel="stylesheet" href="login.css">
-</head>
-<body>
+<?php 
+$page_type = 'login';
+require('widget/top.php'); 
+?>
     <div class="container">
         <button class="back-btn" onclick="window.location.href = 'trangchu.php'">← Quay lại</button>
         
@@ -24,7 +19,8 @@
                     <label>Mật khẩu</label>
                     <div class="password-wrapper">
                         <input type="password" id="password" placeholder="Nhập mật khẩu" required>
-                        <img src="eye-closed.png" class="eye-icon" id="eyeIcon" onclick="togglePassword()">
+                        <!-- SỬA ĐƯỜNG DẪN ẢNH Ở ĐÂY -->
+                        <img src="image/eye-off.svg.png" class="eye-icon" id="eyeIcon" onclick="togglePassword()" alt="Hiển thị mật khẩu">
                     </div>
                 </div>
                 
@@ -55,14 +51,13 @@
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                eyeIcon.src = 'eye.svg.png';
+                eyeIcon.src = 'image/eye.svg.png'; // SỬA ĐƯỜNG DẪN Ở ĐÂY
             } else {
                 passwordInput.type = 'password';
-                eyeIcon.src = 'eye-off.svg.png';
+                eyeIcon.src = 'image/eye-off.svg.png'; // SỬA ĐƯỜNG DẪN Ở ĐÂY
             }
         }
         
-        // Xử lý form đăng nhập
         document.querySelector('.login-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const username = this.querySelector('input[type="text"]').value;
@@ -73,6 +68,20 @@
             } else {
                 alert('Vui lòng điền đầy đủ thông tin!');
             }
+        });
+
+        // THÊM: Kiểm tra xem ảnh có tồn tại không
+        window.addEventListener('load', function() {
+            const eyeIcon = document.getElementById('eyeIcon');
+            const img = new Image();
+            img.onload = function() {
+                console.log('Ảnh icon mắt tải thành công');
+            };
+            img.onerror = function() {
+                console.error('Không thể tải ảnh icon mắt. Đường dẫn: ' + eyeIcon.src);
+                // Có thể thay thế bằng icon font-awesome nếu ảnh không tồn tại
+            };
+            img.src = eyeIcon.src;
         });
     </script>
 </body>
