@@ -1,12 +1,7 @@
-<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đăng nhập LeaderClub</title>
-    <link rel="stylesheet" href="login.css">
-</head>
-<body>
+<?php 
+$page_type = 'login';
+require('widget/top.php'); 
+?>
     <div class="container">
         <button class="back-btn" onclick="window.location.href = 'trangchu.php'">← Quay lại</button>
         
@@ -62,7 +57,7 @@
             }
         }
         
-        // Xử lý form đăng nhập
+      
         document.querySelector('.login-form').addEventListener('submit', function(e) {
             e.preventDefault();
             const username = this.querySelector('input[type="text"]').value;
