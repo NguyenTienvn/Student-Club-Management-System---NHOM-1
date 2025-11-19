@@ -51,10 +51,10 @@ require('widget/top.php');
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                eyeIcon.src = 'eye.svg.png';
+                eyeIcon.src = 'image/eye.svg.png';
             } else {
                 passwordInput.type = 'password';
-                eyeIcon.src = 'eye-off.svg.png';
+                eyeIcon.src = 'image/eye-off.svg.png';
             }
         }
         
@@ -96,6 +96,29 @@ require('widget/top.php');
             
             window.location.href = 'login.php';
         });
+
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const eyeIcons = document.querySelectorAll('.eye-icon');
+            
+            eyeIcons.forEach(icon => {
+                
+                const testImage = new Image();
+                testImage.onerror = function() {
+                   
+                    const originalSrc = icon.src;
+                    if (!originalSrc.includes('image/')) {
+                        if (originalSrc.includes('eye-closed.png')) {
+                            icon.src = 'image/eye-off.svg.png';
+                        } else if (originalSrc.includes('eye.svg.png')) {
+                            icon.src = 'image/eye.svg.png';
+                        }
+                    }
+                };
+                testImage.src = icon.src;
+            });
+        });
+        
     </script>
 </body>
 </html>
