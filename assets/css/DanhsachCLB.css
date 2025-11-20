@@ -1,0 +1,63 @@
+.discover-section {
+  width: 100%;
+  padding: 80px 0 40px;
+  text-align: center;
+  position: relative;
+}
+
+.discover-title {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1.3;
+  color: #111;
+}
+
+.discover-title span {
+  color: #000;
+}
+
+.star {
+  width: 60px;
+  position: absolute;
+  top: 20px;
+}
+
+.star-left {
+  left: 220px;
+}
+
+.star-right {
+  right: 220px;
+}
+
+.categories {
+  margin-top: 50px;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.cat-item {
+  text-align: center;
+  width: 120px;
+}
+
+.icon-circle {
+  width: 70px;
+  height: 70px;
+  border: 3px solid #d86a3c;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto 12px;
+  color: #d86a3c;
+  font-size: 28px;
+}
+
+.cat-item p {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+}
