@@ -1,63 +1,567 @@
-.discover-section {
-  width: 100%;
-  padding: 80px 0 40px;
-  text-align: center;
-  position: relative;
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.discover-title {
-  font-size: 48px;
-  font-weight: 800;
-  line-height: 1.3;
-  color: #111;
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
 }
 
-.discover-title span {
-  color: #000;
+@keyframes shimmer {
+    0% {
+        background-position: -1000px 0;
+    }
+    100% {
+        background-position: 1000px 0;
+    }
 }
 
-.star {
-  width: 60px;
-  position: absolute;
-  top: 20px;
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
 }
 
-.star-left {
-  left: 220px;
+/* ===== BODY ===== */
+body {
+    margin: 0;
+    padding-top: 100px;
+    font-family: 'Inter', sans-serif;
+    background: linear-gradient(180deg, #f7fafc 0%, #edf2f7 100%);
+    color: #111;
 }
 
-.star-right {
-  right: 220px;
+/* ===== CONTAINER ===== */
+.container {
+    width: 1250px;
+    margin: 0 auto;
+    padding: 60px 0;
+    animation: fadeInUp 0.8s ease;
 }
 
+/* ===== TITLE ===== */
+.title {
+    text-align: center;
+    font-size: 56px;
+    font-weight: 900;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+    animation: fadeInUp 0.8s ease;
+}
+
+.title .highlight {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ===== CATEGORIES ===== */
 .categories {
-  margin-top: 50px;
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  flex-wrap: wrap;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin: 50px 0 60px 0;
+    animation: fadeInUp 0.8s ease 0.2s backwards;
 }
 
 .cat-item {
-  text-align: center;
-  width: 120px;
+    text-align: center;
+    width: 110px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.icon-circle {
-  width: 70px;
-  height: 70px;
-  border: 3px solid #d86a3c;
-  border-radius: 50%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 0 auto 12px;
-  color: #d86a3c;
-  font-size: 28px;
+.cat-item:hover {
+    transform: translateY(-10px);
+}
+
+.cat-item img {
+    width: 70px;
+    height: 70px;
+    padding: 16px;
+    border: 3px solid transparent;
+    border-radius: 50%;
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, #667eea 0%, #764ba2 100%) border-box;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.2);
+}
+
+.cat-item:hover img {
+    transform: rotate(10deg) scale(1.1);
+    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
 }
 
 .cat-item p {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.3;
+    margin-top: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #2d3748;
+    transition: color 0.3s ease;
+}
+
+.cat-item:hover p {
+    color: #667eea;
+}
+
+/* ===== FILTERS ===== */
+.filters {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    animation: fadeInUp 0.8s ease 0.3s backwards;
+}
+
+.filters input,
+.filters select {
+    flex: 1;
+    height: 52px;
+    padding: 0 20px;
+    border-radius: 12px;
+    border: 2px solid #e2e8f0;
+    font-size: 16px;
+    background: #f7fafc;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.filters input:focus,
+.filters select:focus {
+    outline: none;
+    border-color: #667eea;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.btn-filter {
+    flex: 0 0 140px;
+    height: 52px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+}
+
+.btn-filter:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
+}
+
+/* ===== CLUB CARDS ===== */
+#club-list {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.club-card {
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+    display: flex;
+    justify-content: space-between;
+    padding: 40px;
+    margin: 35px 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+    border: 3px solid transparent;
+}
+
+.club-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s;
+}
+
+.club-card:hover::before {
+    left: 100%;
+}
+
+.club-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 60px rgba(102, 126, 234, 0.25);
+    border-color: #667eea;
+}
+
+.club-info {
+    width: 58%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.club-info h2 {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 12px 0 16px 0;
+    color: #2d3748;
+    line-height: 1.3;
+    transition: color 0.3s ease;
+}
+
+.club-card:hover .club-info h2 {
+    color: #667eea;
+}
+
+.club-title-link {
+    text-decoration: none;
+    color: inherit;
+    transition: color 0.3s ease;
+}
+
+.club-info p {
+    font-size: 17px;
+    line-height: 1.7;
+    color: #718096;
+    margin-bottom: 16px;
+}
+
+.member-count {
+    margin: 16px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #667eea;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.badge {
+    padding: 10px 18px;
+    border-radius: 25px;
+    font-size: 14px;
+    font-weight: 700;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.green { 
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    color: white;
+}
+
+.yellow { 
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    color: white;
+}
+
+.btn-detail {
+    margin-top: 20px;
+    padding: 14px 32px;
+    border: 3px solid #667eea;
+    border-radius: 50px;
+    background: white;
+    color: #667eea;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-block;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+}
+
+.btn-detail:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+}
+
+.club-img {
+    width: 38%;
+    border-radius: 20px;
+    object-fit: cover;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+    transition: all 0.4s ease;
+}
+
+.club-card:hover .club-img {
+    transform: scale(1.05) rotate(2deg);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25);
+}
+
+/* ===== XEM THÊM BUTTON ===== */
+.xem-them-wrap {
+    width: 100%;
+    max-width: 1200px;
+    margin: 60px auto;
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+.xem-them-wrap::before,
+.xem-them-wrap::after {
+    content: "";
+    flex: 1;
+    border-bottom: 2px solid #e2e8f0;
+    margin: auto 20px;
+}
+
+.btn-xem-them {
+    background: white;
+    padding: 16px 40px;
+    border-radius: 50px;
+    border: 3px solid #667eea;
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    color: #667eea;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+}
+
+.btn-xem-them:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-5px);
+    box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+}
+
+.arrow {
+    font-size: 18px;
+    transition: transform 0.3s ease;
+}
+
+.btn-xem-them:hover .arrow {
+    transform: translateY(5px);
+}
+
+/* ===== CTA SECTION ===== */
+.cta-full {
+    width: 100%;
+    background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #4facfe);
+    background-size: 400% 400%;
+    animation: gradient 15s ease infinite;
+    padding: 120px 20px;
+    text-align: center;
+    margin-top: 80px;
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes gradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.cta-full::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+    background-size: 50px 50px;
+    animation: float 20s ease-in-out infinite;
+}
+
+.cta-full h2 {
+    font-size: 52px;
+    font-weight: 900;
+    color: white;
+    line-height: 1.3;
+    margin-bottom: 40px;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 2;
+}
+
+.cta-btn {
+    background: white;
+    color: #667eea;
+    border: none;
+    padding: 20px 50px;
+    font-size: 20px;
+    font-weight: 700;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 2;
+}
+
+.cta-btn:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+}
+
+/* ===== SHOW/HIDE CLUBS ===== */
+.club-card.hidden-club {
+    display: none !important;
+}
+
+.club-card.show-club {
+    display: flex !important;
+    animation: fadeInUp 0.6s ease;
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width: 1300px) {
+    .container,
+    #club-list,
+    .xem-them-wrap {
+        width: 95%;
+        padding-inline: 20px;
+    }
+}
+
+@media(max-width: 900px) {
+    body {
+        padding-top: 80px;
+    }
+
+    .title {
+        font-size: 40px;
+    }
+
+    .categories {
+        gap: 20px;
+    }
+
+    .filters {
+        flex-direction: column;
+        padding: 20px;
+    }
+
+    .filters input,
+    .filters select,
+    .btn-filter {
+        width: 100%;
+        flex: none;
+    }
+
+    .club-card {
+        flex-direction: column;
+        padding: 30px;
+    }
+
+    .club-info,
+    .club-img {
+        width: 100%;
+    }
+
+    .club-img {
+        margin-top: 20px;
+        height: 250px;
+    }
+
+    .club-info h2 {
+        font-size: 26px;
+    }
+
+    .cta-full h2 {
+        font-size: 36px;
+    }
+}
+
+@media(max-width: 560px) {
+    .title {
+        font-size: 32px;
+    }
+
+    .categories {
+        gap: 15px;
+    }
+
+    .cat-item {
+        width: 90px;
+    }
+
+    .cat-item img {
+        width: 60px;
+        height: 60px;
+    }
+
+    .club-info h2 {
+        font-size: 22px;
+    }
+
+    .cta-full h2 {
+        font-size: 28px;
+    }
+}
+
+
+/* ===== NO RESULTS MESSAGE ===== */
+.no-results {
+    display: none;
+    text-align: center;
+    padding: 80px 20px;
+    animation: fadeInUp 0.5s ease;
+}
+
+.no-results-content {
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.no-results-content i {
+    font-size: 80px;
+    color: #cbd5e0;
+    margin-bottom: 20px;
+}
+
+.no-results-content h3 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #2d3748;
+    margin-bottom: 12px;
+}
+
+.no-results-content p {
+    font-size: 17px;
+    color: #718096;
 }
