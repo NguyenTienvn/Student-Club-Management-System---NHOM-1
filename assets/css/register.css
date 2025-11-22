@@ -88,7 +88,7 @@ input:focus {
     font-style: italic;
 }
 
-/* Password wrapper */
+
 .password-wrapper {
     position: relative;
 }
@@ -109,7 +109,7 @@ input:focus {
     transform: translateY(-50%) scale(1.1);
 }
 
-/* Divider */
+
 .divider {
     height: 1px;
     background-color: #ecf0f1;
@@ -152,7 +152,7 @@ input:focus {
     text-decoration: underline;
 }
 
-/* Responsive */
+
 @media (max-width: 480px) {
     .register-box {
         padding: 30px 20px;
@@ -168,7 +168,7 @@ input:focus {
     }
 }
 
-/* Animation for form */
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -182,4 +182,22 @@ input:focus {
 
 .register-box {
     animation: fadeIn 0.5s ease-out;
+}
+
+.error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border-left: 4px solid #c62828;
+}
+
+.success-message {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    border-left: 4px solid #2e7d32;
 }
