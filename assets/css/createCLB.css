@@ -1,103 +1,137 @@
-h2 {
-    color: #163be0;
-    text-align: center;
-    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    font-size: 38px;
-    padding-bottom: 20px;
+body{
+    background-color: #f1e7bd;
 }
-
 .container-center {
-    font-family: Arial, sans-serif;
-    display: flex;
-    justify-content: center;  /* Căn giữa ngang */
-    align-items: center;      /* Căn giữa dọc */
-    min-height: 100vh;        /* Chiếm toàn bộ chiều cao màn hình */
-    background-color: antiquewhite;
-    padding: 100px 0;          /* Khoảng cách trên dưới */
-}
-
-label {
-    font-size: larger;
-    font-weight: bold;    
-    display: block;
-    margin-bottom: 8px; 
-    color: #163be0;
-}  
-
-span{
-    color: black;
-    font-weight: normal;
-}
-.taoCLB { 
-    margin: 40px 0;           /* Cách lề trên và dưới */
-    padding: 50px;
+    max-width: 800px;
+    margin: 50px auto; 
+   padding: 30px 60px; 
+    background-color: #eeec67; 
     border-radius: 12px;
-    width: 750px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    background-color: rgb(255, 249, 158);
-} 
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 30px;  
+    box-sizing: border-box;
+}
 
-input, select {
-    font-size: large;
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #6ea5ca;
-    border-radius: 6px;
+.taoCLB h2 {
+    color: #1332e7; 
+    text-align: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 38px; 
+    font-weight: bold;
+    margin-bottom: 25px;
+    padding-bottom: 8px; 
+    padding-top: 20px; 
 }
-#fileUpload {
-    display: none;
-}
-.upload-box {
-    margin-top: 20px;
-    width: 100%;
-    height: 150px;
-    border: 3px dashed #6ea5ca; 
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 10px;
-    cursor: pointer;  
-}
- 
-.imgCLB {
+
+.taoCLB label {
     display: block;
-    margin: 0 auto 30px;
-    width: 350px;
-    border-radius: 20px;
-    overflow: hidden;
+    margin-bottom: 6px; 
+    font-weight: bold;
+    color: #1332e7; 
+    font-size: 20px;
+}
+
+.taoCLB input[type="text"],
+.taoCLB input[type="number"],
+.taoCLB textarea,
+.taoCLB select {
+    width: 100%;
+    padding: 14px 13px; 
+    padding-bottom: 18px;
+    margin-bottom: 25px; 
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 16px;
+    font-family: inherit;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background-color: #fafafa; 
+}
+
+.taoCLB input[type="text"]:focus,
+.taoCLB input[type="number"]:focus,
+.taoCLB textarea:focus,
+.taoCLB select:focus {
+    border-color: #2196f3;
+    outline: none;
+    box-shadow: 0 0 6px rgba(33, 150, 243, 0.3);
+}
+
+.upload-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #ccc;
+    border-radius: 8px;
+    padding: 28px;   
+    cursor: pointer;
+    color: #06489e;
+    background-color: #f0f0f0; 
+    transition: border-color 0.3s ease, background-color 0.3s ease;
+    font-size: 16px;
+}
+
+.upload-box:hover {
+    border-color: #2196f3;
+    background-color: #e3f2fd; 
+    color: #2196f3;
+}
+
+.imgCLB {
+    width: 100%;
+    max-height: 350px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 20px; 
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); 
+}
+
+.btnRow {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px; 
+    margin-top: 25px;
+}
+
+.btnCreateCLB,
+.btnback {
+    flex: 1;
+    padding: 16px 0; 
+    text-align: center;
+    font-size: 16px;
+    font-weight: normal;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-sizing: border-box;
 }
 
 .btnCreateCLB {
-    margin: 20px auto 0 auto; 
-    background: #007bff;
-    border: none; 
-    border-radius: 6px;
-    font-size: 18px;
-    cursor: pointer;
-    color: white;
-    width: fit-content; 
+    border: none;
+    background-color: #2196f3; 
+    color: #fff;
+    font-weight: normal;
 }
 
 .btnCreateCLB:hover {
-    background: #005ec2;
+    background-color: #1976d2; 
+    transform: translateY(-2px); 
 }
 
 .btnback {
-    margin: 20px auto 0 auto;
-    padding: 8px 52px;
-    background: #007bff;
-    border: none;
-    border-radius: 6px;
-    font-size: 19px;
-    cursor: pointer;
-    text-decoration: none;
-    color: white;
-    width: fit-content;
-    display: block;  
+
+    display: inline-block;
+    border: 1px solid #ccc;
+    background-color: #f5f5f5; 
+    line-height: 1.2; 
 }
 
 .btnback:hover {
-    background: #005ec2;
+    background-color: #e0e0e0;
+    border-color: #bbb;
+    transform: translateY(-2px); 
 }
+
+ 
