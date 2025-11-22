@@ -1,3 +1,10 @@
+<?php 
+$page_css = "trangchu.css";
+require'site.php'; 
+load_top();
+load_header();
+?>
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -8,7 +15,7 @@
 </head>
 <body>
 
-    <!-- HEADER -->
+<!-- HEADER -->
     <header class="header">
         <div class="logo">LeaderClub</div>
         <nav>
@@ -16,8 +23,8 @@
             <a href="#">CLB</a>
             <a href="#">Sự kiện</a>
             <a href="#">Liên hệ</a>
-            <button class="btn">Đăng Ký</button>
-            <button class="btn outline">Đăng Nhập</button>
+            <button class="btn" onclick="window.location.href = 'register.php'">Đăng Ký</button>
+            <button class="btn outline" onclick="window.location.href = 'login.php'">Đăng Nhập</button>
         </nav>
     </header>
 
