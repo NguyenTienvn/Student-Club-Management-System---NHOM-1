@@ -1,0 +1,109 @@
+ 
+.container-myclub {
+    display: flex;
+    flex-direction: column;
+    align-items: center; 
+    margin-top: 55px;
+    padding: 20px;
+    background-color: #edff88f8;
+    font-family: Arial, sans-serif;
+    min-height: 100vh; 
+}
+
+/* Tiêu đề */
+.container-myclub h2 {
+    color: #216fff;
+    font-size: 40px;
+    padding-top: 25px;
+}
+
+/* Mô tả */
+.container-myclub .title {
+    font-size: 20px;
+    color: #292828;
+    margin-bottom: 30px;
+}
+ 
+.myCLB {
+    width: 800px;
+    background-color: #fff;
+    height: 520px ;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    text-align: center;
+     min-height: 600px; 
+     padding: 40px; 
+}
+ 
+.create img {
+    width: 480px;   
+    padding-top: 15p;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    margin: 20px auto 30px auto;
+}
+
+.create .lb1 {
+      color: #f00606; 
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.create .lb2 {
+    font-size: 16px;
+    color: #666; 
+}
+
+/* Nút tạo CLB */
+.btnCreateCLB {
+     display: block;        
+    margin: 10 auto; 
+    padding: 13px 20px; 
+    background-color: #216fff;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.btnCreateCLB:hover {
+    background-color: #163be0;
+}
+
+/* Danh sách CLB */
+.club-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+
+.club-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 150px;
+    padding: 15px;
+    background-color: #f1f1f1;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+.club-item:hover {
+    transform: scale(1.05);
+}
+
+.club-logo {
+    width: 100px; /* ảnh nhỏ hơn */
+    height: 10px;
+    object-fit: cover;
+    margin-bottom: 10px; 
+}
+
+.club-name {
+    font-weight: bold;
+    text-align: center;
+    color: #333;
+}
