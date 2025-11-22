@@ -72,22 +72,23 @@
     background-color: #163be0;
 }
 
-/* Danh sách CLB */
-.club-list {
+/* Danh sách CLB */.club-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 20px;
+    gap: 25px;
     justify-content: center;
+    margin-top: 20px;
 }
 
 .club-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 150px;
+    width: 180px;
     padding: 15px;
-    background-color: #f1f1f1;
-    border-radius: 8px;
+    background-color: #f7f7f7;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     transition: 0.3s;
 }
 
@@ -96,14 +97,16 @@
 }
 
 .club-logo {
-    width: 100px; /* ảnh nhỏ hơn */
-    height: 10px;
+    width: 120px;
+    height: 120px;
     object-fit: cover;
-    margin-bottom: 10px; 
+    border-radius: 10px;
+    margin-bottom: 10px;
 }
 
 .club-name {
     font-weight: bold;
-    text-align: center;
+    font-size: 18px;
     color: #333;
+    margin-bottom: 10px;
 }

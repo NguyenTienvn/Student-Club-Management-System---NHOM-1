@@ -37,10 +37,10 @@ load_header();
 
     <label>Số thành viên</label>
     <input type="number" name="so_thanh_vien" min="1" required>
- 
- 
+
+<!--  
     <label>ID Chủ nhiệm</label>
-    <input type="number" name="chu_nhiem_id" min="1" required>
+    <input type="number" name="chu_nhiem_id" min="1" required> -->
             <div class="btnRow">
                 <input type="submit" class="btnCreateCLB" value="Tạo">
                 <a href="myclub.php" class="btnback">Quay lại</a>
