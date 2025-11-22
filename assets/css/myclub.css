@@ -1,112 +1,146 @@
- 
+/* Container chính */
 .container-myclub {
-    display: flex;
-    flex-direction: column;
-    align-items: center; 
-    margin-top: 55px;
-    padding: 20px;
-    background-color: #edff88f8;
-    font-family: Arial, sans-serif;
-    min-height: 100vh; 
+display: flex;
+flex-direction: column;
+align-items: center;
+margin-top: 55px;
+padding: 20px;
+background-color: #edff88f8;
+font-family: Arial, sans-serif;
+min-height: 100vh;
 }
 
 /* Tiêu đề */
 .container-myclub h2 {
-    color: #216fff;
-    font-size: 40px;
-    padding-top: 25px;
+color: #216fff;
+font-size: 40px;
+padding-top: 25px;
+text-align: center;
 }
 
 /* Mô tả */
 .container-myclub .title {
-    font-size: 20px;
-    color: #292828;
-    margin-bottom: 30px;
+font-size: 20px;
+color: #292828;
+margin-bottom: 30px;
+text-align: center;
 }
  
-.myCLB {
-    width: 800px;
-    background-color: #fff;
-    height: 520px ;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    text-align: center;
-     min-height: 600px; 
-     padding: 40px; 
-}
- 
-.create img {
-    width: 480px;   
-    padding-top: 15p;
-    margin-bottom: 20px;
-    border-radius: 10px;
-    margin: 20px auto 30px auto;
+
+/* Khối tạo CLB khi chưa có CLB hoặc khối gợi ý tạo mới */
+.create1, .create2 {
+display: flex;
+flex-direction: column;
+align-items: center;
+margin-bottom: 30px;
 }
 
-.create .lb1 {
-      color: #f00606; 
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 10px;
+.create1 img, .create2 img {
+width: 480px;
+max-width: 100%;
+padding-top: 15px;
+margin-bottom: 20px;
+border-radius: 10px;
 }
 
-.create .lb2 {
-    font-size: 16px;
-    color: #666; 
+.create2 .lb1 {
+color: #f00606;
+font-size: 20px;
+font-weight: bold;
+margin-bottom: 10px;
+}
+
+.create1 .lb2, .create2 .lb2 {
+font-size: 16px;
+color: #666;
+margin-bottom: 15px;
 }
 
 /* Nút tạo CLB */
 .btnCreateCLB {
-     display: block;        
-    margin: 10 auto; 
-    padding: 13px 20px; 
-    background-color: #216fff;
-    color: #fff;
-    font-weight: bold;
-    border-radius: 8px;
-    text-decoration: none;
-    transition: 0.3s;
+display: inline-block;
+margin: 10px auto;
+padding: 13px 20px;
+background-color: #216fff;
+color: #fff;
+font-weight: bold;
+border-radius: 8px;
+text-decoration: none;
+transition: 0.3s;
 }
-
 .btnCreateCLB:hover {
-    background-color: #163be0;
+background-color: #163be0;
 }
 
-/* Danh sách CLB */.club-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 25px;
-    justify-content: center;
-    margin-top: 20px;
+/* Danh sách CLB - grid */
+.club-list {
+display: grid;
+grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+gap: 20px;
+margin-top: 20px; 
 }
 
+/* Thẻ CLB */
 .club-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 180px;
-    padding: 15px;
-    background-color: #f7f7f7;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    transition: 0.3s;
+    width: 550px;
+display: flex;
+gap: 15px;
+background: #fff;
+padding: 20px;
+border-radius: 12px;
+box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+align-items: center;
+transition: transform 0.2s, box-shadow 0.2s;
 }
-
 .club-item:hover {
-    transform: scale(1.05);
+transform: translateY(-3px);
+box-shadow: 0 8px 16px rgba(0,0,0,0.15);
 }
 
 .club-logo {
-    width: 120px;
-    height: 120px;
-    object-fit: cover;
-    border-radius: 10px;
-    margin-bottom: 10px;
+width: 90px;
+height: 90px;
+margin-right: 20px;
+object-fit: cover;
+border-radius: 10px;
+}
+
+.club-info {
+flex: 1;
+display: flex;
+flex-direction: column;
+align-items: flex-start;
+}
+
+.club-tag {
+background: #d7f2b3;
+color: #4b700e;
+font-size: 12px;
+padding: 4px 8px;
+border-radius: 6px;
+width: fit-content;
+margin-bottom: 6px;
 }
 
 .club-name {
-    font-weight: bold;
-    font-size: 18px;
-    color: #333;
-    margin-bottom: 10px;
+font-size: 20px;
+font-weight: 700;
+margin-bottom: 12px;
 }
+
+.btn-manage {
+background: #4e73df;
+color: white;
+padding: 8px 14px;
+text-align: center;
+border-radius: 8px;
+text-decoration: none;
+width: 110px;
+text-align: center;
+transition: 0.3s;
+}
+
+.btn-manage:hover {
+background: #2f52c4;
+}
+ 
