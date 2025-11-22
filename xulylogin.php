@@ -6,6 +6,13 @@ require_once('assets/database/connect.php'); // $conn đã có sẵn
 function loginUser($username, $password) {
     global $conn;
     
+    // Kiểm tra admin trước
+    if ($username === 'admin' && $password === 'admin123') {
+        $_SESSION['admin_logged_in'] = true;
+        $_SESSION['admin_username'] = 'admin';
+        return 'admin'; // Trả về 'admin' để redirect đến admin panel
+    }
+    
     $stmt = $conn->prepare("SELECT id, ho_ten, username, email, password, vai_tro, so_dien_thoai FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
@@ -13,7 +20,19 @@ function loginUser($username, $password) {
     
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
-        if ($password === $user['password']) { // Sau này nên dùng password_hash + password_verify
+        
+        // Kiểm tra mật khẩu: hỗ trợ cả plain text và hash
+        $password_match = false;
+        
+        // Kiểm tra nếu là password hash (bắt đầu với $2y$)
+        if (substr($user['password'], 0, 4) === '$2y$') {
+            $password_match = password_verify($password, $user['password']);
+        } else {
+            // Plain text password
+            $password_match = ($password === $user['password']);
+        }
+        
+        if ($password_match) {
             $_SESSION['logged_in'] = true;
             $_SESSION['user_id']   = $user['id'];
             $_SESSION['username']  = $user['username'];

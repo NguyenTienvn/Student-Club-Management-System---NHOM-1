@@ -22,7 +22,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     }
 
     if (empty($username_error) && empty($password_error)) {
-        if (loginUser($username, $password)) {
+        $login_result = loginUser($username, $password);
+        
+        if ($login_result === 'admin') {
+            // Đăng nhập admin - chuyển đến admin panel
+            header("Location: admin/index.php");
+            exit();
+        } elseif ($login_result === true) {
+            // Đăng nhập user thường
             if (isset($_POST['remember'])) {
                 setcookie('remember_user', $username, time() + (30 * 24 * 60 * 60), "/");
             }
@@ -76,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                     <label class="remember">
                         <input type="checkbox" name="remember" <?php echo isset($_COOKIE['remember_user']) ? 'checked' : ''; ?>> Ghi nhớ tôi
                     </label>
-                    <a href="#" class="forgot-link">Quên mật khẩu?</a>
+                    <a href="forgot-password.php" class="forgot-link">Quên mật khẩu?</a>
                 </div>
                 
                 <button type="submit" name="login" class="login-btn">Đăng nhập</button>

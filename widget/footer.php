@@ -34,7 +34,7 @@
         <div class="footer-col">
             <h3>LIÊN KẾT</h3>
             <a href="#">Bộ Giáo dục & Đào tạo</a>
-            <a href="#">Trang chủ</a>
+            <a href="trangchu.php">Trang chủ</a>
         </div>
 
     </div>

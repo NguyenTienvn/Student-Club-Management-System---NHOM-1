@@ -35,7 +35,7 @@
         </div>
 
         <a href="#">Sự kiện</a>
-        <a href="#">Liên hệ</a>
+        <a href="lien-he.php">Liên hệ</a>
     </nav>
 
     <!-- RIGHT BUTTONS -->
@@ -44,7 +44,10 @@
             <!-- User đã đăng nhập -->
             <?php
             // Lấy avatar từ database
-            require_once('assets/database/connect.php');
+            global $conn;
+            if (!isset($conn) || $conn === null) {
+                require_once('assets/database/connect.php');
+            }
             $user_id = $_SESSION['user_id'];
             $sql = "SELECT avatar FROM users WHERE id = ?";
             $stmt = $conn->prepare($sql);
