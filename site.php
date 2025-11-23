@@ -1,7 +1,12 @@
 <?php
 	function load_top()
 	{
+		global $page_css;
 		require('widget/top.php');
+
+		if (!empty($page_css)) {
+			echo '<link rel="stylesheet" href="assets/css/' . $page_css . '">';
+		}
 	}
 	function load_header()
 	{
