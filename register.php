@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 
 <div class="container">
-    <button class="back-btn" onclick="window.location.href = 'trangchu.php'">Quay lại</button>
+    <button class="back-btn" onclick="window.location.href = 'trangchu.php'">← Quay lại</button>
         
     <div class="register-box">
         <h1>Tạo tài khoản LeaderClub</h1>
@@ -94,8 +94,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="input-group">
                     <label for="password">Mật khẩu</label>
                     <div class="password-wrapper">
-                        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required>
-                        <img src="image/eye-off.svg.png" class="eye-icon" id="eyeIcon1" onclick="togglePassword('password', 'eyeIcon1')">
+                        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" autocomplete="new-password" required>
+                        <img src="assets/img/eye-off.svg.png" class="eye-icon" id="eyeIcon1" onclick="togglePassword('password', 'eyeIcon1')">
                     </div>
                     <div class="input-note">Ít nhất 8 ký tự</div>
                 </div>
@@ -103,8 +103,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="input-group">
                     <label for="confirmPassword">Nhập lại mật khẩu</label>
                     <div class="password-wrapper">
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" required>
-                        <img src="image/eye-off.svg.png" class="eye-icon" id="eyeIcon2" onclick="togglePassword('confirmPassword', 'eyeIcon2')">
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" autocomplete="new-password" required>
+                        <img src="assets/img/eye-off.svg.png" class="eye-icon" id="eyeIcon2" onclick="togglePassword('confirmPassword', 'eyeIcon2')">
                     </div>
                 </div>
                 
@@ -127,30 +127,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         if (passwordInput.type === 'password') {
             passwordInput.type = 'text';
-            eyeIcon.src = 'image/eye.svg.png';
+            eyeIcon.src = 'assets/img/eye.svg.png';
         } else {
             passwordInput.type = 'password';
-            eyeIcon.src = 'image/eye-off.svg.png';
+            eyeIcon.src = 'assets/img/eye-off.svg.png';
+        }
+    }
+    
+    // Hàm kiểm tra và hiện/ẩn icon mắt
+    function toggleEyeIconVisibility(inputId, eyeIconId) {
+        const passwordInput = document.getElementById(inputId);
+        const eyeIcon = document.getElementById(eyeIconId);
+        
+        if (passwordInput.value.length > 0) {
+            eyeIcon.style.display = 'block';
+        } else {
+            eyeIcon.style.display = 'none';
         }
     }
         
     document.addEventListener('DOMContentLoaded', function() {
+        // Ẩn tất cả icon mắt ban đầu
         const eyeIcons = document.querySelectorAll('.eye-icon');
         
         eyeIcons.forEach(icon => {
-            const testImage = new Image();
-            testImage.onerror = function() {
-                const originalSrc = icon.src;
-                if (!originalSrc.includes('image/')) {
-                    if (originalSrc.includes('eye-closed.png')) {
-                        icon.src = 'image/eye-off.svg.png';
-                    } else if (originalSrc.includes('eye.svg.png')) {
-                        icon.src = 'image/eye.svg.png';
-                    }
-                }
-            };
-            testImage.src = icon.src;
+            icon.style.display = 'none';
         });
+        
+        // Thêm event listener cho các ô password
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function() {
+                toggleEyeIconVisibility('password', 'eyeIcon1');
+            });
+        }
+        
+        if (confirmPasswordInput) {
+            confirmPasswordInput.addEventListener('input', function() {
+                toggleEyeIconVisibility('confirmPassword', 'eyeIcon2');
+            });
+        }
     });
 </script>
 

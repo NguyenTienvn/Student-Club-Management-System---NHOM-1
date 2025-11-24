@@ -7,25 +7,41 @@ $page_type = 'login';
 require('site.php'); 
 load_top();
 
+$username_error = "";
+$password_error = "";
 // Xử lý đăng nhập
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     $username = trim($_POST['username']);
     $password = $_POST['password'];
     
-    if (loginUser($username, $password)) {
-        // Đăng nhập thành công
-        if (isset($_POST['remember'])) {
-            setcookie('remember_user', $username, time() + (30 * 24 * 60 * 60), "/");
-        }
+     if (empty($username)) {
+        $username_error = "Tên đăng nhập không được bỏ trống!";
+    }
+    if (empty($password)) {
+        $password_error = "Mật khẩu không được bỏ trống!";
+    }
+
+    if (empty($username_error) && empty($password_error)) {
+        $login_result = loginUser($username, $password);
         
-        header("Location: trangchu.php");
-        exit();
-    } else {
-        $error_message = "Tên đăng nhập hoặc mật khẩu không đúng!";
-        
-        // KIỂM TRA NẾU USERNAME KHÔNG TỒN TẠI
-        if (!usernameExists($username)) {
-            $error_message = "Tài khoản không tồn tại. Vui lòng đăng ký tài khoản mới!";
+        if ($login_result === 'admin') {
+            // Đăng nhập admin - chuyển đến admin panel
+            header("Location: admin/index.php");
+            exit();
+        } elseif ($login_result === true) {
+            // Đăng nhập user thường
+            if (isset($_POST['remember'])) {
+                setcookie('remember_user', $username, time() + (30 * 24 * 60 * 60), "/");
+            }
+            header("Location: trangchu.php");
+            exit();
+        } else {
+            // Sai tài khoản hoặc mật khẩu
+            if (!usernameExists($username)) {
+                $username_error = "Tài khoản không tồn tại. Vui lòng đăng ký!";
+            } else {
+                $password_error = "Ten đăng nhập hoặc mật khẩu không đúng!";
+            }
         }
     }
 }
@@ -45,22 +61,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 <div class="input-group">
                     <label>Tên đăng nhập</label>
                     <input type="text" name="username" placeholder="Nhập tên đăng nhập" 
-                           value="<?php echo isset($_COOKIE['remember_user']) ? $_COOKIE['remember_user'] : ''; ?>" required>
+                           value="<?php echo isset($_COOKIE['remember_user']) ? $_COOKIE['remember_user'] : ''; ?>">
+
+                    <?php if (!empty($username_error)): ?>
+                        <p class="input-error"><?php echo $username_error; ?></p>
+                    <?php endif; ?>
                 </div>
                 
                 <div class="input-group">
                     <label>Mật khẩu</label>
                     <div class="password-wrapper">
-                        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required>
-                        <img src="image/eye-off.svg.png" class="eye-icon" id="eyeIcon" onclick="togglePassword()" alt="Hiển thị mật khẩu">
+                        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" autocomplete="current-password">
+                        <img src="assets/img/eye-off.svg.png" class="eye-icon" id="eyeIcon" onclick="togglePassword()" alt="Hiển thị mật khẩu">
                     </div>
+                    <?php if (!empty($password_error)): ?>
+                        <p class="input-error"><?php echo $password_error; ?></p>
+                    <?php endif; ?>
                 </div>
                 
                 <div class="options">
                     <label class="remember">
                         <input type="checkbox" name="remember" <?php echo isset($_COOKIE['remember_user']) ? 'checked' : ''; ?>> Ghi nhớ tôi
                     </label>
-                    <a href="#" class="forgot-link">Quên mật khẩu?</a>
+                    <a href="forgot-password.php" class="forgot-link">Quên mật khẩu?</a>
                 </div>
                 
                 <button type="submit" name="login" class="login-btn">Đăng nhập</button>
@@ -83,12 +106,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             
             if (passwordInput.type === 'password') {
                 passwordInput.type = 'text';
-                eyeIcon.src = 'image/eye.svg.png'; 
+                eyeIcon.src = 'assets/img/eye.svg.png'; 
             } else {
                 passwordInput.type = 'password';
-                eyeIcon.src = 'image/eye-off.svg.png';
+                eyeIcon.src = 'assets/img/eye-off.svg.png';
             }
         }
+        
+        // Ẩn icon mắt ban đầu
+        document.addEventListener('DOMContentLoaded', function() {
+            const eyeIcon = document.getElementById('eyeIcon');
+            const passwordInput = document.getElementById('password');
+            
+            eyeIcon.style.display = 'none';
+            
+            passwordInput.addEventListener('input', function() {
+                if (passwordInput.value.length > 0) {
+                    eyeIcon.style.display = 'block';
+                } else {
+                    eyeIcon.style.display = 'none';
+                }
+            });
+        });
     
     </script>
 </body>
