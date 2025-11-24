@@ -42,21 +42,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verify_email'])) {
     $email = trim($_POST['email'] ?? '');
     $user_id = $_SESSION['reset_user_id'] ?? 0;
     
-    if ($user_id > 0) {
-        $stmt = $conn->prepare("SELECT id, username, email, ho_ten, password FROM users WHERE id = ? AND email = ?");
-        $stmt->bind_param("is", $user_id, $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        
-        if ($result->num_rows === 1) {
-            $user_data = $result->fetch_assoc();
-            $step = 3;
+    // Trường hợp 1: Bỏ trống email
+    if (empty($email)) {
+        $error = "Vui lòng nhập email để xác thực!";
+        $step = 2;
+    }
+    // Trường hợp 2: Email không đúng định dạng
+    elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $error = "Email không hợp lệ! Vui lòng kiểm tra lại.";
+        $step = 2;
+    }
+    // Trường hợp 3: Email hợp lệ → kiểm tra trong DB
+    else {
+        if ($user_id <= 0) {
+            $error = "Phiên làm việc đã hết hạn. Vui lòng thử lại từ đầu.";
+            $step = 1;
         } else {
-            $error = "Email không khớp với tài khoản!";
-            $step = 2;
+            $stmt = $conn->prepare("SELECT id, username, email, ho_ten FROM users WHERE id = ? AND email = ?");
+            $stmt->bind_param("is", $user_id, $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result->num_rows === 1) {
+                // Thành công → qua bước 3
+                $user_data = $result->fetch_assoc();
+                $step = 3;
+                $error = ''; // xóa lỗi cũ
+            } else {
+                // Sai email → thông báo chung chung (bảo mật)
+                $error = "Không có tài khoản nào sử dụng email này.";
+                $step = 2;
+            }
         }
     }
 }
+
 
 // Bước 3: Đặt mật khẩu mới
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['reset_password'])) {
@@ -66,10 +86,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['reset_password'])) {
     
     if (empty($new_password)) {
         $error = "Vui lòng nhập mật khẩu mới!";
-    } elseif (strlen($new_password) < 6) {
-        $error = "Mật khẩu phải có ít nhất 6 ký tự!";
+        $step = 3;
+    } elseif (strlen($new_password) < 8) {
+        $error = "Mật khẩu phải có ít nhất 8 ký tự!";
+        $step = 3;
     } elseif ($new_password !== $confirm_password) {
         $error = "Mật khẩu xác nhận không khớp!";
+        $step = 3;
     } else {
         $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
         $stmt->bind_param("si", $new_password, $user_id);
@@ -80,6 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['reset_password'])) {
             $step = 4;
         } else {
             $error = "Có lỗi xảy ra. Vui lòng thử lại!";
+            $step = 3;
         }
     }
 }
@@ -141,7 +165,7 @@ if ($step >= 2 && isset($_SESSION['reset_user_id'])) {
         <form method="POST" class="login-form">
             <div class="input-group">
                 <label>Tên đăng nhập hoặc Email</label>
-                <input type="text" name="identifier" placeholder="Nhập username hoặc email" required autofocus>
+                <input type="text" name="identifier" placeholder="Nhập username hoặc email" autofocus>
             </div>
             <button type="submit" name="find_account" class="login-btn">Tìm tài khoản</button>
         </form>
@@ -157,7 +181,7 @@ if ($step >= 2 && isset($_SESSION['reset_user_id'])) {
         <form method="POST" class="login-form">
             <div class="input-group">
                 <label>Xác nhận Email của bạn</label>
-                <input type="email" name="email" placeholder="Nhập email đã đăng ký" required autofocus>
+                <input type="email" name="email" placeholder="Nhập email đã đăng ký" autofocus>
                 <small>Email đã được ẩn một phần: <?php echo substr($user_data['email'], 0, 3) . '***@' . explode('@', $user_data['email'])[1]; ?></small>
             </div>
             <button type="submit" name="verify_email" class="login-btn">Xác nhận</button>
@@ -173,12 +197,12 @@ if ($step >= 2 && isset($_SESSION['reset_user_id'])) {
         <form method="POST" class="login-form">
             <div class="input-group">
                 <label>Mật khẩu mới</label>
-                <input type="password" name="new_password" placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)" required autofocus>
+                <input type="password" name="new_password" placeholder="Nhập mật khẩu mới (tối thiểu 8 ký tự)" autofocus>
             </div>
 
             <div class="input-group">
                 <label>Xác nhận mật khẩu mới</label>
-                <input type="password" name="confirm_password" placeholder="Nhập lại mật khẩu mới" required>
+                <input type="password" name="confirm_password" placeholder="Nhập lại mật khẩu mới">
             </div>
 
             <button type="submit" name="reset_password" class="login-btn">Đặt lại mật khẩu</button>
