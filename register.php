@@ -15,35 +15,56 @@ if (isset($_SESSION['temp_username']) && basename($_SERVER['PHP_SELF']) == 'regi
 }
 
 $success_message = '';
-$error_message = '';
+$errors = [
+    'username' => '',
+    'password' => '',
+    'confirm'  => '',
+    'general'  => ''
+];
 
 // Xử lý đăng ký
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = trim($_POST['username']);
-    $password = $_POST['password'];
-    $confirmPassword = $_POST['confirmPassword'];
-    
-    // Validate
-    $usernameRegex = '/^[a-zA-Z0-9]+$/';
-    if (!preg_match($usernameRegex, $username)) {
-        $error_message = 'Tên đăng nhập chỉ được dùng chữ và số!';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username       = trim($_POST['username'] ?? '');
+    $password       = $_POST['password'] ?? '';
+    $confirmPassword = $_POST['confirmPassword'] ?? '';
+
+    // === KIỂM TRA TÊN ĐĂNG NHẬP ===
+    if ($username === '') {
+        $errors['username'] = 'Vui lòng nhập tên đăng nhập!';
+    } elseif (!preg_match('/^[a-zA-Z0-9]+$/', $username)) {
+        $errors['username'] = 'Tên đăng nhập chỉ được dùng chữ cái và số!';
+    }
+
+    // === KIỂM TRA MẬT KHẨU ===
+    if ($password === '') {
+        $errors['password'] = 'Vui lòng nhập mật khẩu!';
     } elseif (strlen($password) < 8) {
-        $error_message = 'Mật khẩu phải có ít nhất 8 ký tự!';
+        $errors['password'] = 'Mật khẩu phải có ít nhất 8 ký tự!';
+    }
+
+    // === KIỂM TRA NHẬP LẠI MẬT KHẨU ===
+    if ($confirmPassword === '') {
+        $errors['confirm'] = 'Vui lòng nhập lại mật khẩu!';
     } elseif ($password !== $confirmPassword) {
-        $error_message = 'Mật khẩu nhập lại không khớp!';
-    } else {
-        // Đăng ký user
+        $errors['confirm'] = 'Mật khẩu nhập lại không khớp!';
+    }
+
+    // Nếu không có lỗi ở các field → gọi hàm đăng ký
+    if ($errors['username'] === '' && $errors['password'] === '' && $errors['confirm'] === '') {
         $result = registerUser($username, $password);
 
         if ($result === true) {
+            // Đăng ký thành công
             $_SESSION['temp_username'] = $username;
-            $_SESSION['temp_password'] = $password;
+            $_SESSION['temp это_password'] = $password;
             $_SESSION['registration_time'] = time();
             
             // HIỆN THÔNG BÁO + TỰ ĐỘNG CHUYỂN SAU 2 GIÂY
             $success_message = 'Đăng ký thành công! Đang chuyển đến hoàn thiện hồ sơ...';
+        
         } else {
-            $error_message = $result;
+            // Lỗi từ hàm registerUser (tên trùng, lỗi DB,...)
+            $errors['general'] = $result;
         }
     }
 }
@@ -55,8 +76,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <div class="register-box">
         <h1>Tạo tài khoản LeaderClub</h1>
             
-        <?php if ($error_message): ?>
-            <div class="error-message"><?php echo htmlspecialchars($error_message); ?></div>
+        <<?php if (!empty($errors['general'])): ?>
+            <div class="error-message">
+                <?php echo htmlspecialchars($errors['general']); ?>
+            </div>
         <?php endif; ?>
 
         <?php if ($success_message): ?>
@@ -87,25 +110,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="input-group">
                     <label for="username">Tên đăng nhập</label>
                     <input type="text" id="username" name="username" placeholder="Nhập tên đăng nhập" 
-                           value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>" required>
+                           value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>">
                     <div class="input-note">Chỉ dùng chữ và số</div>
+                    <?php if (!empty($errors['username'])): ?>
+                        <div class="field-error"><?php echo $errors['username']; ?></div>
+                    <?php endif; ?>
                 </div>
                 
                 <div class="input-group">
                     <label for="password">Mật khẩu</label>
                     <div class="password-wrapper">
-                        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" autocomplete="new-password" required>
+                        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" autocomplete="new-password">
                         <img src="assets/img/eye-off.svg.png" class="eye-icon" id="eyeIcon1" onclick="togglePassword('password', 'eyeIcon1')">
                     </div>
                     <div class="input-note">Ít nhất 8 ký tự</div>
+                    <?php if (!empty($errors['password'])): ?>
+                        <div class="field-error"><?php echo $errors['password']; ?></div>
+                    <?php endif; ?>
                 </div>
                 
                 <div class="input-group">
                     <label for="confirmPassword">Nhập lại mật khẩu</label>
                     <div class="password-wrapper">
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" autocomplete="new-password" required>
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" autocomplete="new-password">
                         <img src="assets/img/eye-off.svg.png" class="eye-icon" id="eyeIcon2" onclick="togglePassword('confirmPassword', 'eyeIcon2')">
                     </div>
+                    <?php if (!empty($errors['confirm'])): ?>
+                        <div class="field-error"><?php echo $errors['confirm']; ?></div>
+                    <?php endif; ?>
                 </div>
                 
                 <div class="divider"></div>

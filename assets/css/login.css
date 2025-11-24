@@ -260,21 +260,58 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
 }
 
 .input-error {
-    color: #f56565;
-    font-size: 13px;
-    margin-top: 8px;
-    font-weight: 600;
-}
-
-.error-message {
-    background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
-    color: #c53030;
-    padding: 14px 18px;
+    background: linear-gradient(135deg, #fff1f0 0%, #ffe7e6 100%);
+    border: 2px solid #ffccc7;
+    color: #cf1322;
+    padding: 18px 24px;
     border-radius: 12px;
     margin-bottom: 25px;
-    border-left: 4px solid #c53030;
     font-weight: 600;
-    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: shake 0.5s ease;
+}
+
+/* Error & Success Messages */
+.error-message {
+    background: linear-gradient(135deg, #fff1f0 0%, #ffe7e6 100%);
+    border: 2px solid #ffccc7;
+    color: #cf1322;
+    padding: 18px 24px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: shake 0.5s ease;
+}
+
+.error-message::before {
+    content: "⚠️";
+    font-size: 24px;
+}
+
+.success-message {
+    background: linear-gradient(135deg, #f6ffed 0%, #edfce8 100%);
+    border: 2px solid #b7eb8f;
+    color: #389e0d;
+    padding: 18px 24px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideIn 0.5s ease;
+}
+
+.success-message::before {
+    content: "✓";
+    font-size: 24px;
+    font-weight: 900;
 }
 
 @media (max-width: 480px) {
@@ -307,4 +344,76 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
 .admin-hint strong {
     color: #764ba2;
     font-weight: 800;
+}
+
+.account-popup-overlay {
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.8);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:9999;
+}
+.account-popup {
+    background:white;
+    border-radius:20px;
+    padding:30px;
+    width:90%;
+    max-width:400px;
+    text-align:center;
+    box-shadow:0 20px 60px rgba(0,0,0,0.4);
+}
+.account-list .account-item button {
+    display:flex;
+    align-items:center;
+    width:100%;
+    padding:15px;
+    border:none;
+    background:#f8f9fa;
+    border-radius:12px;
+    margin:10px 0;
+    cursor:pointer;
+    transition:0.3s;
+}
+.account-list .account-item button:hover {
+    background:#e3f2fd;
+    transform:scale(1.02);
+}
+.account-list img.avatar {
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    margin-right:15px;
+    object-fit:cover;
+}
+.big-avatar {
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    margin-bottom:15px;
+}
+.pin-input {
+    font-size:32px;
+    letter-spacing:12px;
+    text-align:center;
+    width:180px;
+    padding:15px;
+    border:2px solid #ddd;
+    border-radius:12px;
+}
+.btn-new, .btn-cancel {
+    margin-top:15px;
+    color:#1976d2;
+    background:none;
+    border:none;
+    font-size:15px;
+    cursor:pointer;
+}
+.error {
+    color:#e74c3c;
+    margin:10px 0;
 }
