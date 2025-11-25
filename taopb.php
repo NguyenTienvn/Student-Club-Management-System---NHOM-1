@@ -8,6 +8,10 @@ if (!isset($_SESSION['user_id']) && !isset($_SESSION['id'])) {
     exit;
 }
 $user_id = $_SESSION['user_id'] ?? $_SESSION['id'];
+$popup_error = $_SESSION['popup_error'] ?? '';
+$popup_success = $_SESSION['popup_success'] ?? '';
+$open_popup = !empty($popup_error) || isset($_GET['openPopup']);
+
 
 // lấy CLB mà user là chủ nhiệm (nếu có)
 // ưu tiên lấy theo chu_nhiem_id (file createCLB_xuli nên lưu chu_nhiem_id = creator)
@@ -47,7 +51,7 @@ $members = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
   <div class="title">Thành viên</div>
   <div class="top-actions">
     <button class="btn-outline">Danh sách chờ</button>
-    <button class="btn-outline active">Tạo phòng ban</button>
+    <button class="btn-outline active" onclick="openModal()">Tạo phòng ban</button>
     <button class="btn-primary">+ Mời tham gia</button>
   </div>
 </div>
@@ -111,26 +115,42 @@ $members = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
 <div id="modalContainer"></div>
 
 <script>
-function openModal(){
-  fetch('popup_taopb.php') // file popup nhận club_id từ session/DB
-    .then(r => r.text())
-    .then(html => {
-      document.getElementById('modalContainer').innerHTML = html;
-      const modal = document.getElementById('createDeptModal');
-      if(modal) modal.classList.add('show');
+function openModal() {
+    fetch('popup_taopb.php')
+        .then(r => r.text())
+        .then(html => {
+            document.getElementById('modalContainer').innerHTML = html;
+            document.getElementById('createDeptModal')?.classList.add('show');
+        });
+}
+
+function closeModal() {
+    const modal = document.getElementById('createDeptModal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            document.getElementById('modalContainer').innerHTML = '';
+        }, 300);
+    }
+}
+
+// TỰ ĐỘNG MỞ POPUP KHI CÓ LỖI HOẶC GET openPopup=1
+<?php if ($open_popup): ?>
+    window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(openModal, 100); // Chờ DOM load xong
     });
-}
-function closeModal(){
-  const modal = document.getElementById('createDeptModal');
-  if(modal){
-    modal.classList.remove('show');
-    setTimeout(()=> document.getElementById('modalContainer').innerHTML='', 220);
-  }
-}
-window.addEventListener('click', e => {
-  const modal = document.getElementById('createDeptModal');
-  if(modal && e.target === modal) closeModal();
-});
+<?php endif; ?>
+
+// HIỆN THÔNG BÁO THÀNH CÔNG
+<?php if ($popup_success): ?>
+    window.addEventListener('DOMContentLoaded', () => {
+        const box = document.createElement('div');
+        box.className = 'msg-box success';
+        box.innerText = '<?= $popup_success ?>';
+        document.body.appendChild(box);
+        setTimeout(() => box.remove(), 3000);
+    });
+<?php endif; ?>
 </script>
 
 <script src="assets/js/taopb.js"></script>
