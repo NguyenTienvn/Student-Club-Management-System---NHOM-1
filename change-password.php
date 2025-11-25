@@ -145,7 +145,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_GET['success'])) {
             </div>
 
             <div class="form-actions">
-                <button type="button" class="btn-cancel" onclick="history.back()">Hủy</button>
+               <button type="button" class="btn-cancel" onclick="window.location.href='settings.php'">Hủy</button>
                 <button type="submit" class="btn-submit">Đổi mật khẩu</button>
             </div>
         </form>
