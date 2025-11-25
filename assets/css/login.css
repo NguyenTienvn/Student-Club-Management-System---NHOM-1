@@ -424,13 +424,13 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
     animation: shake 0.5s ease;
 }
 
-/* Hiệu ứng rung nhẹ khi lỗi xuất hiện (rất bắt mắt) */
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(-5px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Khi ô input có lỗi → viền đỏ + bóng đỏ nhẹ */
+
 .input-group:has(.field-error) input,
 .input-group:has(.field-error) .password-wrapper input {
     border: 1.5px solid #e74c3c !important;
@@ -438,7 +438,7 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
     background-color: #fff8f8;
 }
 
-/* Focus vào ô đang lỗi vẫn đẹp */
+
 .input-group:has(.field-error) input:focus,
 .input-group:has(.field-error) .password-wrapper input:focus {
     outline: none;
@@ -446,7 +446,7 @@ input[type="password"]::-webkit-contacts-auto-fill-button {
     box-shadow: 0 0 10px rgba(231, 76, 60, 0.4);
 }
 
-/* Icon lỗi nhỏ bên cạnh (tùy chọn – cực pro) */
+
 .field-error::before {
     content: "⚠️";
     display: inline-block;
