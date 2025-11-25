@@ -13,4 +13,4 @@ if (session_status() === PHP_SESSION_NONE) {
 
     <!-- CSS chung -->
     <link rel="stylesheet" href="assets/css/global.css">
-    
+    <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v7.1.0/css/all.css" />
