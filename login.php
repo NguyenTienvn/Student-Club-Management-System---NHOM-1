@@ -3,6 +3,19 @@ session_start();
 $page_css = "login.css";
 require('assets/database/connect.php');
 require('xulylogin.php');
+
+// Kiểm tra tự động đăng nhập từ cookie
+if (!isset($_SESSION['logged_in']) && autoLoginFromCookie()) {
+    header("Location: trangchu.php");
+    exit();
+}
+
+// Nếu đã đăng nhập, chuyển đến trang chủ
+if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
+    header("Location: trangchu.php");
+    exit();
+}
+
 $page_type = 'login';
 require('site.php'); 
 load_top();
@@ -22,17 +35,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
     }
 
     if (empty($username_error) && empty($password_error)) {
-        $login_result = loginUser($username, $password);
+        $remember = isset($_POST['remember']);
+        $login_result = loginUser($username, $password, $remember);
         
         if ($login_result === 'admin') {
             // Đăng nhập admin - chuyển đến admin panel
             header("Location: admin/index.php");
             exit();
         } elseif ($login_result === true) {
-            // Đăng nhập user thường
-            if (isset($_POST['remember'])) {
-                setcookie('remember_user', $username, time() + (30 * 24 * 60 * 60), "/");
-            }
+            // Đăng nhập user thành công
             header("Location: trangchu.php");
             exit();
         } else {
@@ -40,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             if (!usernameExists($username)) {
                 $username_error = "Tài khoản không tồn tại. Vui lòng đăng ký!";
             } else {
-                $password_error = "Ten đăng nhập hoặc mật khẩu không đúng!";
+                $password_error = "Tên đăng nhập hoặc mật khẩu không đúng!";
             }
         }
     }
@@ -61,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 <div class="input-group">
                     <label>Tên đăng nhập</label>
                     <input type="text" name="username" placeholder="Nhập tên đăng nhập" 
-                           value="<?php echo isset($_COOKIE['remember_user']) ? $_COOKIE['remember_user'] : ''; ?>">
+                           value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>">
 
                     <?php if (!empty($username_error)): ?>
                         <p class="input-error"><?php echo $username_error; ?></p>
@@ -81,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
                 
                 <div class="options">
                     <label class="remember">
-                        <input type="checkbox" name="remember" <?php echo isset($_COOKIE['remember_user']) ? 'checked' : ''; ?>> Ghi nhớ tôi
+                        <input type="checkbox" name="remember"> Ghi nhớ tôi
                     </label>
                     <a href="forgot-password.php" class="forgot-link">Quên mật khẩu?</a>
                 </div>

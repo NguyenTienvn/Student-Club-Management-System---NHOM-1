@@ -66,8 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['reset_password'])) {
     
     if (empty($new_password)) {
         $error = "Vui lòng nhập mật khẩu mới!";
-    } elseif (strlen($new_password) < 6) {
-        $error = "Mật khẩu phải có ít nhất 6 ký tự!";
+    } elseif (strlen($new_password) < 8) {
+        $error = "Mật khẩu phải có ít nhất 8 ký tự!";
     } elseif ($new_password !== $confirm_password) {
         $error = "Mật khẩu xác nhận không khớp!";
     } else {
@@ -155,10 +155,13 @@ if ($step >= 2 && isset($_SESSION['reset_user_id'])) {
         </div>
 
         <form method="POST" class="login-form">
-            <div class="input-group">
+            <div class="input-group" style="width: 100%;">
                 <label>Xác nhận Email của bạn</label>
-                <input type="email" name="email" placeholder="Nhập email đã đăng ký" required autofocus>
-                <small>Email đã được ẩn một phần: <?php echo substr($user_data['email'], 0, 3) . '***@' . explode('@', $user_data['email'])[1]; ?></small>
+                <input type="email" name="email" placeholder="Nhập email đã đăng ký" required autofocus style="width: 100% !important; padding: 16px 20px !important; font-size: 15px !important; border-radius: 12px !important;">
+                <small style="width: 100% !important; box-sizing: border-box !important; word-break: break-word !important;">Email đã được ẩn một phần: <?php 
+                $email_parts = explode('@', $user_data['email']);
+                echo substr($email_parts[0], 0, 3) . '***@' . $email_parts[1]; 
+                ?></small>
             </div>
             <button type="submit" name="verify_email" class="login-btn">Xác nhận</button>
         </form>
@@ -173,12 +176,13 @@ if ($step >= 2 && isset($_SESSION['reset_user_id'])) {
         <form method="POST" class="login-form">
             <div class="input-group">
                 <label>Mật khẩu mới</label>
-                <input type="password" name="new_password" placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)" required autofocus>
+                <input type="password" name="new_password" placeholder="Nhập mật khẩu mới" required autofocus minlength="8">
+                <small>Tối thiểu 8 ký tự</small>
             </div>
 
             <div class="input-group">
                 <label>Xác nhận mật khẩu mới</label>
-                <input type="password" name="confirm_password" placeholder="Nhập lại mật khẩu mới" required>
+                <input type="password" name="confirm_password" placeholder="Nhập lại mật khẩu mới" required minlength="8">
             </div>
 
             <button type="submit" name="reset_password" class="login-btn">Đặt lại mật khẩu</button>
