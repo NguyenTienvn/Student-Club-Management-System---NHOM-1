@@ -51,8 +51,6 @@ $stmt->bind_param("ii", $club_id, $user_id);
 $stmt->execute();
 $is_member = $stmt->get_result()->num_rows > 0;
 
-// Lấy danh sách thành viên (top 12)
-// Lấy danh sách thành viên (nếu bảng tồn tại)
 $members_result = [];
 try {
     $sql = "SELECT u.id, u.ho_ten, u.avatar, cm.vai_tro 
@@ -104,8 +102,8 @@ try {
                         <span>✓</span> Đã tham gia
                     </button>
                 <?php else: ?>
-                    <button class="btn-join" onclick="joinClub(<?php echo $club_id; ?>)">
-                        <span>+</span> Tham gia
+                   <button class="btn-join" onclick="openJoinModal(<?php echo $club_id; ?>)">
+            <span>+</span> Đăng ký thành viên
                     </button>
                 <?php endif; ?>
             </div>
@@ -225,13 +223,55 @@ try {
     </div>
 </div>
 
+<div id="modalContainer"></div>
+
+<link rel="stylesheet" href="assets/css/popup_join.css">
+
 <script>
-function joinClub(clubId) {
-    if (confirm('Bạn có muốn tham gia CLB này không?')) {
-        // TODO: Implement join club functionality
-        alert('Chức năng đang phát triển!');
+function openJoinModal(clubId) {
+    console.log('Opening modal for club:', clubId);
+    
+    fetch(`popup_join.php?club_id=${clubId}`)
+        .then(r => {
+            if (!r.ok) throw new Error('Network error');
+            return r.text();
+        })
+        .then(html => {
+            document.getElementById('modalContainer').innerHTML = html;
+            const modal = document.getElementById('joinClubModal');
+            if (modal) {
+                modal.classList.add('show');
+                // Thêm event listener để đóng modal khi click outside
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeJoinModal();
+                    }
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Lỗi khi mở popup:', err);
+            alert('Có lỗi xảy ra khi mở form đăng ký');
+        });
+}
+
+// Hàm đóng modal
+function closeJoinModal() {
+    const modal = document.getElementById('joinClubModal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            document.getElementById('modalContainer').innerHTML = '';
+        }, 300);
     }
 }
+
+// Đóng bằng ESC
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closeJoinModal();
+    }
+});
 </script>
 
 <?php
