@@ -53,7 +53,7 @@ if (isset($_FILES['banner']) && $_FILES['banner']['error'] == 0) {
     
     if (in_array($ext, $allowed)) {
         $new_filename = 'banner_' . $club_id . '_' . time() . '.' . $ext;
-        $upload_path = 'uploads/' . $new_filename;
+        $upload_path = 'assets/img/' . $new_filename;
         
         if (move_uploaded_file($_FILES['banner']['tmp_name'], $upload_path)) {
             $banner_path = $upload_path;
@@ -70,7 +70,7 @@ if (isset($_FILES['avatar']) && $_FILES['avatar']['error'] == 0) {
     
     if (in_array($ext, $allowed)) {
         $new_filename = 'logo_' . $club_id . '_' . time() . '.' . $ext;
-        $upload_path = 'uploads/' . $new_filename;
+        $upload_path = 'assets/img/' . $new_filename;
         
         if (move_uploaded_file($_FILES['avatar']['tmp_name'], $upload_path)) {
             $avatar_path = $upload_path;
@@ -83,17 +83,19 @@ $update_fields = [];
 $params = [];
 $types = '';
 
-if ($banner_path) {
-    $update_fields[] = "logo_url = ?";
-    $params[] = $banner_path;
-    $types .= 's';
-}
-
+// Logo/Avatar được lưu vào cả logo và logo_url để đồng bộ
 if ($avatar_path) {
     $update_fields[] = "logo = ?";
     $params[] = $avatar_path;
     $types .= 's';
+    
+    $update_fields[] = "logo_url = ?";
+    $params[] = $avatar_path;
+    $types .= 's';
 }
+
+// Banner được lưu riêng, không update vào bảng clubs
+// (sẽ lưu vào club_pages ở dưới)
 
 if ($description) {
     $update_fields[] = "mo_ta = ?";

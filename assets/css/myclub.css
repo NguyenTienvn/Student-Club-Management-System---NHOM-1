@@ -226,6 +226,23 @@
     flex-direction: column;
     align-items: center;
     gap: 15px;
+    min-height: 200px;
+}
+
+.club-card-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.club-card-header[style*="background-image"]::before {
+    opacity: 1;
 }
 
 .club-avatar {
@@ -235,6 +252,9 @@
     object-fit: cover;
     border: 5px solid white;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    position: relative;
+    z-index: 1;
+    background: white;
 }
 
 .club-badge {
@@ -246,6 +266,8 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    position: relative;
+    z-index: 1;
 }
 
 .club-card-body {

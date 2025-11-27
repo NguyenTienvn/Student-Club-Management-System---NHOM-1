@@ -78,6 +78,13 @@ $active_tab = $_GET['tab'] ?? 'joined'; // Mặc định hiển thị tab "Đã 
                             <h3 class="club-name"><?= htmlspecialchars($club['ten_clb']) ?></h3>
                             <p class="club-desc"><?= htmlspecialchars(substr($club['mo_ta'] ?? 'Chưa có mô tả', 0, 80)) ?><?= strlen($club['mo_ta'] ?? '') > 80 ? '...' : '' ?></p>
                             <div class="club-actions">
+                                <a href="club-detail.php?id=<?= $club['id'] ?>" class="btn-view">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                    Xem chi tiết
+                                </a>
                                 <?php if ($is_owner): ?>
                                     <a href="Dashboard.php?id=<?= $club['id'] ?>" class="btn-manage">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -87,21 +94,6 @@ $active_tab = $_GET['tab'] ?? 'joined'; // Mặc định hiển thị tab "Đã 
                                             <rect x="3" y="14" width="7" height="7"></rect>
                                         </svg>
                                         Quản lý
-                                    </a>
-                                    <a href="edit_inf_CLB.php?id=<?= $club['id'] ?>" class="btn-edit">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                        </svg>
-                                        Chỉnh sửa
-                                    </a>
-                                <?php else: ?>
-                                    <a href="club-detail.php?id=<?= $club['id'] ?>" class="btn-view">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                            <circle cx="12" cy="12" r="3"></circle>
-                                        </svg>
-                                        Xem chi tiết
                                     </a>
                                 <?php endif; ?>
                             </div>
@@ -139,6 +131,13 @@ $active_tab = $_GET['tab'] ?? 'joined'; // Mặc định hiển thị tab "Đã 
                             <h3 class="club-name"><?= htmlspecialchars($club['ten_clb']) ?></h3>
                             <p class="club-desc"><?= htmlspecialchars(substr($club['mo_ta'] ?? 'Chưa có mô tả', 0, 80)) ?><?= strlen($club['mo_ta'] ?? '') > 80 ? '...' : '' ?></p>
                             <div class="club-actions">
+                                <a href="club-detail.php?id=<?= $club['id'] ?>" class="btn-view">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                    </svg>
+                                    Xem trang
+                                </a>
                                 <a href="Dashboard.php?id=<?= $club['id'] ?>" class="btn-manage">
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                         <rect x="3" y="3" width="7" height="7"></rect>
@@ -147,13 +146,6 @@ $active_tab = $_GET['tab'] ?? 'joined'; // Mặc định hiển thị tab "Đã 
                                         <rect x="3" y="14" width="7" height="7"></rect>
                                     </svg>
                                     Quản lý
-                                </a>
-                                <a href="edit_inf_CLB.php?id=<?= $club['id'] ?>" class="btn-edit">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                    </svg>
-                                    Chỉnh sửa
                                 </a>
                             </div>
                         </div>

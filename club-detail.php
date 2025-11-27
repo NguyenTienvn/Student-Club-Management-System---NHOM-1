@@ -46,7 +46,8 @@ try {
         if ($result->num_rows > 0) {
             $club_page = $result->fetch_assoc();
             // Merge thông tin từ club_pages vào $club
-            if ($club_page['banner_url']) $club['logo_url'] = $club_page['banner_url'];
+            // Banner được lưu riêng trong club_page, không ghi đè logo_url
+            if ($club_page['banner_url']) $club['banner_url'] = $club_page['banner_url'];
             if ($club_page['logo_url']) $club['logo'] = $club_page['logo_url'];
             if ($club_page['description']) $club['mo_ta'] = $club_page['description'];
             if ($club_page['primary_color']) $club['color'] = $club_page['primary_color'];
@@ -338,7 +339,7 @@ try {
             <div class="section-card">
                 <div class="section-header">
                     <h2>📸 Thư viện ảnh</h2>
-                    <a href="#" class="view-all">Xem tất cả →</a>
+                    <a href="club-gallery.php?id=<?= $club_id ?>&mode=view" class="view-all">Xem tất cả →</a>
                 </div>
                 <div class="gallery-grid">
                     <?php 
@@ -352,11 +353,11 @@ try {
                     if ($gallery && $gallery->num_rows > 0): 
                         while ($photo = $gallery->fetch_assoc()): 
                     ?>
-                        <div class="gallery-item" style="background: <?php echo $gradients[$index % 4]; ?>; <?php if (!empty($photo['image_url'])): ?>background-image: url('<?php echo htmlspecialchars($photo['image_url']); ?>'); background-size: cover; background-position: center;<?php endif; ?>">
+                        <a href="club-gallery.php?id=<?= $club_id ?>&mode=view" class="gallery-item" style="background: <?php echo $gradients[$index % 4]; ?>; <?php if (!empty($photo['image_url'])): ?>background-image: url('<?php echo htmlspecialchars($photo['image_url']); ?>'); background-size: cover; background-position: center;<?php endif; ?>">
                             <div class="gallery-overlay">
                                 <span><?php echo htmlspecialchars($photo['title'] ?? 'Ảnh CLB'); ?></span>
                             </div>
-                        </div>
+                        </a>
                     <?php 
                         $index++;
                         endwhile; 
@@ -364,11 +365,11 @@ try {
                         // Hiển thị placeholder nếu chưa có ảnh
                         for ($i = 0; $i < 4; $i++):
                     ?>
-                        <div class="gallery-item" style="background: <?php echo $gradients[$i]; ?>;">
+                        <a href="club-gallery.php?id=<?= $club_id ?>&mode=view" class="gallery-item" style="background: <?php echo $gradients[$i]; ?>;">
                             <div class="gallery-overlay">
                                 <span>Chưa có ảnh</span>
                             </div>
-                        </div>
+                        </a>
                     <?php 
                         endfor;
                     endif; 

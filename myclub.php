@@ -17,8 +17,13 @@ require_once('assets/database/connect.php');
 
 $user_id = $_SESSION['user_id'];
 
-// Lấy danh sách CLB mà user là chủ nhiệm (dùng prepared statement để bảo mật)
-$stmt = $conn->prepare("SELECT id, ten_clb, logo_url, linh_vuc FROM clubs WHERE chu_nhiem_id = ?");
+// Lấy danh sách CLB mà user là chủ nhiệm với thông tin banner từ club_pages
+$sql = "SELECT c.id, c.ten_clb, c.logo, c.logo_url, c.linh_vuc, 
+               cp.banner_url, cp.logo_url as page_logo_url
+        FROM clubs c
+        LEFT JOIN club_pages cp ON c.id = cp.club_id
+        WHERE c.chu_nhiem_id = ?";
+$stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -77,10 +82,14 @@ $result = $stmt->get_result();
                     <?php 
                     $result->data_seek(0); // Reset pointer
                     while($row = $result->fetch_assoc()): 
+                        // Xác định logo và banner
+                        $logo = $row['page_logo_url'] ?? $row['logo'] ?? $row['logo_url'] ?? 'assets/img/default-club.png';
+                        $banner = $row['banner_url'] ?? '';
+                        $has_banner = !empty($banner) && file_exists($banner);
                     ?>
                         <div class="club-card">
-                            <div class="club-card-header">
-                                <img src="<?= htmlspecialchars($row['logo_url']) ?>" 
+                            <div class="club-card-header" <?= $has_banner ? 'style="background-image: url(\'' . htmlspecialchars($banner) . '\'); background-size: cover; background-position: center;"' : '' ?>>
+                                <img src="<?= htmlspecialchars($logo) ?>" 
                                      alt="<?= htmlspecialchars($row['ten_clb']) ?>" 
                                      class="club-avatar"
                                      onerror="this.src='assets/img/default-club.png'">
@@ -89,7 +98,14 @@ $result = $stmt->get_result();
                             <div class="club-card-body">
                                 <h3 class="club-title"><?= htmlspecialchars($row['ten_clb']) ?></h3>
                                 <div class="club-actions">
-                                    <a href="Dashboard.php?id=<?= $row['id'] ?>" class="btn-primary">
+                                    <a href="club-detail.php?id=<?= $row['id'] ?>" class="btn-primary">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        Xem chi tiết
+                                    </a>
+                                    <a href="Dashboard.php?id=<?= $row['id'] ?>" class="btn-secondary">
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <rect x="3" y="3" width="7" height="7"></rect>
                                             <rect x="14" y="3" width="7" height="7"></rect>
@@ -97,13 +113,6 @@ $result = $stmt->get_result();
                                             <rect x="3" y="14" width="7" height="7"></rect>
                                         </svg>
                                         Quản lý
-                                    </a>
-                                    <a href="edit_inf_CLB.php?id=<?= $row['id'] ?>" class="btn-secondary">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                        </svg>
-                                        Chỉnh sửa
                                     </a>
                                 </div>
                             </div>

@@ -522,12 +522,14 @@ body {
 }
 
 .gallery-item {
+    display: block;
     height: 200px;
     border-radius: 20px;
     position: relative;
     overflow: hidden;
     cursor: pointer;
     transition: transform 0.2s ease;
+    text-decoration: none;
 }
 
 .gallery-item:hover {

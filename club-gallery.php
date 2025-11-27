@@ -1,0 +1,191 @@
+<?php
+session_start();
+require 'site.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+require('assets/database/connect.php');
+$user_id = $_SESSION['user_id'];
+$club_id = $_GET['id'] ?? 0;
+
+// Lấy thông tin CLB
+$sql = "SELECT * FROM clubs WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $club_id);
+$stmt->execute();
+$club = $stmt->get_result()->fetch_assoc();
+
+if (!$club) {
+    header("Location: DanhsachCLB.php");
+    exit();
+}
+
+// Kiểm tra user có phải ban quản lý không (chỉ chủ nhiệm hoặc admin mới upload được)
+$is_admin = false;
+
+// Kiểm tra xem user có phải chủ nhiệm không
+if ($club['chu_nhiem_id'] == $user_id) {
+    $is_admin = true;
+} else {
+    // Kiểm tra trong bảng club_members với vai trò admin/owner
+    $sql = "SELECT * FROM club_members WHERE club_id = ? AND user_id = ? AND vai_tro IN ('admin', 'owner')";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $club_id, $user_id);
+    $stmt->execute();
+    $is_admin = $stmt->get_result()->num_rows > 0;
+}
+
+// Kiểm tra chế độ xem: view (chỉ xem) hoặc manage (quản lý)
+$mode = $_GET['mode'] ?? 'view';
+
+// Nếu không phải admin thì chỉ cho xem
+if (!$is_admin) {
+    $mode = 'view';
+}
+
+// Lấy tất cả ảnh (không JOIN với users vì cột uploaded_by có thể chưa tồn tại)
+$sql = "SELECT * FROM club_gallery 
+        WHERE club_id = ?
+        ORDER BY uploaded_at DESC";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $club_id);
+$stmt->execute();
+$gallery = $stmt->get_result();
+
+$page_css = "club-gallery.css";
+load_top();
+load_header();
+?>
+
+<div class="gallery-container">
+    <!-- Thông báo -->
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success">
+            ✓ <?= htmlspecialchars($_SESSION['success']) ?>
+        </div>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
+    
+    <?php if (isset($_SESSION['error'])): ?>
+        <div class="alert alert-error">
+            ✗ <?= htmlspecialchars($_SESSION['error']) ?>
+        </div>
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
+
+    <div class="gallery-header">
+        <div class="header-left">
+            <?php if ($mode === 'manage'): ?>
+                <a href="Dashboard.php?id=<?= $club_id ?>" class="back-btn">← Quay lại Dashboard</a>
+            <?php else: ?>
+                <a href="club-detail.php?id=<?= $club_id ?>" class="back-btn">← Quay lại</a>
+            <?php endif; ?>
+            <h1>📸 Thư viện ảnh <?= $mode === 'manage' ? '- Quản lý' : '' ?></h1>
+            <p class="club-name"><?= htmlspecialchars($club['ten_clb']) ?></p>
+        </div>
+        <?php if ($is_admin && $mode === 'manage'): ?>
+        <button class="btn-upload" onclick="openUploadModal()">
+            <span>+</span> Thêm ảnh
+        </button>
+        <?php endif; ?>
+    </div>
+
+    <?php if ($gallery->num_rows > 0): ?>
+    <div class="gallery-grid">
+        <?php while ($photo = $gallery->fetch_assoc()): 
+            $upload_date = new DateTime($photo['uploaded_at']);
+        ?>
+        <div class="gallery-item" onclick="openLightbox(<?= $photo['id'] ?>)">
+            <img src="<?= htmlspecialchars($photo['image_url']) ?>" 
+                 alt="<?= htmlspecialchars($photo['title'] ?? 'Ảnh CLB') ?>"
+                 loading="lazy">
+            <div class="item-overlay">
+                <h3><?= htmlspecialchars($photo['title'] ?? 'Ảnh CLB') ?></h3>
+                <p><?= htmlspecialchars($photo['description'] ?? '') ?></p>
+                <div class="item-meta">
+                    <span>📅 <?= $upload_date->format('d/m/Y') ?></span>
+                </div>
+            </div>
+        </div>
+        <?php endwhile; ?>
+    </div>
+    <?php else: ?>
+    <div class="empty-gallery">
+        <div class="empty-icon">📷</div>
+        <h2>Chưa có ảnh nào</h2>
+        <p><?= $mode === 'manage' ? 'Hãy thêm ảnh đầu tiên cho CLB' : 'CLB chưa có ảnh nào' ?></p>
+        <?php if ($is_admin && $mode === 'manage'): ?>
+        <button class="btn-upload-primary" onclick="openUploadModal()">
+            + Thêm ảnh đầu tiên
+        </button>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
+</div>
+
+<!-- Upload Modal -->
+<?php if ($is_admin && $mode === 'manage'): ?>
+<div id="uploadModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>📤 Thêm ảnh mới</h2>
+            <span class="close" onclick="closeUploadModal()">&times;</span>
+        </div>
+        <form action="upload-gallery.php" method="POST" enctype="multipart/form-data" id="uploadForm">
+            <input type="hidden" name="club_id" value="<?= $club_id ?>">
+            
+            <div class="upload-area" id="uploadArea">
+                <input type="file" name="images[]" id="imageInput" accept="image/*" multiple required style="display:none">
+                <div class="upload-placeholder">
+                    <div class="upload-icon">📷</div>
+                    <p>Kéo thả ảnh vào đây hoặc click để chọn</p>
+                    <p class="hint">Hỗ trợ nhiều ảnh cùng lúc (JPG, PNG, GIF)</p>
+                </div>
+                <div id="previewContainer" class="preview-container"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Tiêu đề (tùy chọn)</label>
+                <input type="text" name="title" placeholder="VD: Sự kiện Workshop 2024">
+            </div>
+
+            <div class="form-group">
+                <label>Mô tả (tùy chọn)</label>
+                <textarea name="description" rows="3" placeholder="Mô tả về bức ảnh..."></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeUploadModal()">Hủy</button>
+                <button type="submit" class="btn-submit">Tải lên</button>
+            </div>
+        </form>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- Lightbox -->
+<div id="lightbox" class="lightbox">
+    <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+    <div class="lightbox-content">
+        <img id="lightboxImage" src="" alt="">
+        <div class="lightbox-info">
+            <h3 id="lightboxTitle"></h3>
+            <p id="lightboxDescription"></p>
+            <div class="lightbox-meta">
+                <span id="lightboxUploader"></span>
+                <span id="lightboxDate"></span>
+            </div>
+        </div>
+    </div>
+    <button class="lightbox-prev" onclick="prevImage()">❮</button>
+    <button class="lightbox-next" onclick="nextImage()">❯</button>
+</div>
+
+<script src="assets/js/club-gallery.js"></script>
+
+<?php
+load_footer();
+?>

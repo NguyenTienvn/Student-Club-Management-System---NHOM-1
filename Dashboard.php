@@ -65,7 +65,7 @@ load_header();
         <div class="box page-add">
             <h3>Tạo trang đại diện</h3>
             <p>Trang đại diện của CLB và công khai trang</p>
-            <button onclick="location.href='tao_trang_dai_dien.php'" class="btn_addPage">Bắt đầu</button>
+            <button onclick="location.href='tao_trang_dai_dien.php?id=<?= $club_id ?>'" class="btn_addPage">Bắt đầu</button>
             <button onclick="location.href='club-detail.php?id=<?= $club_id ?>'" class="btn_addPage" style="margin-top: 10px; background: rgba(255,255,255,0.7);">Xem trang</button>
         </div>
 
@@ -94,6 +94,14 @@ load_header();
                 <!--<button onclick="location.href='themTV.php'" class="addTV">+</button> -->
             <div class="member-item">
             </div>
+        </div>
+    </div>
+
+    <div class="task-group" style="margin-top: 30px;">
+        <div class="box info-add">
+            <h3>📸 Thư viện ảnh</h3>
+            <p>Quản lý và upload ảnh cho CLB</p>
+            <button onclick="location.href='club-gallery.php?id=<?= $club_id ?>&mode=manage'" class="btn_addInfor">Quản lý</button>
         </div>
     </div>
 </div>

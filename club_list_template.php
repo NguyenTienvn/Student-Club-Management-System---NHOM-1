@@ -18,7 +18,7 @@
             <p class="member-count">👥 <?php echo $club['so_thanh_vien']; ?> thành viên</p>
             <a href="club-detail.php?id=<?php echo $club['id']; ?>" class="btn-detail">Chi tiết</a>
         </div>
-        <img class="club-img" src="<?php echo htmlspecialchars($club['logo_url'] ?? 'https://i.imgur.com/1Qd7UXJ.jpeg'); ?>" 
+        <img class="club-img" src="<?php echo htmlspecialchars($club['logo'] ?? 'https://i.imgur.com/1Qd7UXJ.jpeg'); ?>" 
              onerror="this.src='https://i.imgur.com/1Qd7UXJ.jpeg'">
     </div>
     <?php endforeach; ?>
