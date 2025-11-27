@@ -562,4 +562,253 @@ body {
         width: 100%;
         justify-content: center;
     }
+
+    /* ========== POPUP ĐĂNG KÝ THÀNH VIÊN ========== */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal.show {
+    display: flex;
+}
+
+.modal-content {
+    width: 480px;
+    max-width: 90vw;
+    background: #fff;
+    border-radius: 20px;
+    padding: 40px;
+    position: relative;
+    animation: popup .3s ease-out;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+@keyframes popup {
+    from { 
+        transform: scale(0.9) translateY(20px); 
+        opacity: 0; 
+    }
+    to { 
+        transform: scale(1) translateY(0); 
+        opacity: 1; 
+    }
+}
+
+.modal-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.modal-header h2 {
+    font-size: 28px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #2d3748 0%, #667eea 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 12px;
+}
+
+.modal-subtitle {
+    color: #718096;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 28px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: #718096;
+    transition: all 0.3s ease;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+
+.close-btn:hover {
+    background: #f7fafc;
+    color: #2d3748;
+}
+
+.member-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 25px;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    border-radius: 20px;
+    margin-bottom: 30px;
+}
+
+.member-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 700;
+    font-size: 24px;
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    flex-shrink: 0;
+}
+
+.member-details h4 {
+    margin: 0 0 6px 0;
+    font-size: 18px;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.member-details p {
+    margin: 0;
+    font-size: 14px;
+    color: #718096;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2d3748;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid #edf2f7;
+    border-radius: 16px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.3s ease;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input:read-only {
+    background: #f7fafc;
+    color: #718096;
+    cursor: not-allowed;
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+}
+
+.required {
+    color: #e53e3e;
+}
+
+.btn-submit-full {
+    width: 100%;
+    padding: 18px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    border: none;
+    border-radius: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.4s ease;
+    margin-top: 10px;
+}
+
+.btn-submit-full:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+}
+
+.err-msg {
+    color: #e53e3e;
+    font-size: 14px;
+    margin: 8px 0 0 0;
+    display: block;
+    font-weight: 600;
+}
+
+input.err, textarea.err {
+    border-color: #e53e3e !important;
+}
+
+.msg-box {
+    position: fixed;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 16px 32px;
+    border-radius: 16px;
+    font-size: 15px;
+    color: white;
+    z-index: 10000;
+    animation: fadeUp 0.4s ease;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    font-weight: 600;
+}
+
+.msg-box.success { 
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+}
+
+.msg-box.error { 
+    background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+}
+
+@keyframes fadeUp {
+    0% { 
+        opacity: 0; 
+        transform: translate(-50%, -20px); 
+    }
+    100% { 
+        opacity: 1; 
+        transform: translate(-50%, 0); 
+    }
+}
+
+@media (max-width: 768px) {
+    .modal {
+        padding: 10px;
+    }
+    
+    .modal-content {
+        padding: 30px 25px;
+    }
+    
+    .modal-header h2 {
+        font-size: 24px;
+    }
+    
+    .member-info {
+        padding: 20px;
+    }
+}
 }
