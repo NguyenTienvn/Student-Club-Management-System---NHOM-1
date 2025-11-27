@@ -2,7 +2,7 @@
 global $conn;
 
 if (!isset($conn)) {
-    $conn = new mysqli('localhost', 'root', '', 'leaderclub');
+    $conn = new mysqli('localhost', 'root', '123456', 'leaderclub');
     
     if ($conn->connect_error) {
         die("Kết nối thất bại: " . $conn->connect_error);
