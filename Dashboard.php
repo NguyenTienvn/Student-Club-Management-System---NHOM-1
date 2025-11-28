@@ -85,6 +85,10 @@ load_header();
                     <p>Tạo sự kiện để thu hút các nhà tài trợ</p>
                 </div> 
                 <button onclick="location.href='add_Su_kien.php?id=<?= $club_id ?>'" class="taosk">+Tạo sự kiện</button>
+                <button onclick="location.href='list_su_kien.php?id=<?= $club_id ?>'" 
+                    class="xemsk">
+                Xem sự kiện
+            </button>
             </div>
         </div>
       
