@@ -1,0 +1,166 @@
+/* css/danh_sach_su_kien.css */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #fad4f0 0%, #fce7f3 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header-title {
+    text-align: center;
+    margin-bottom: 40px;
+    color: #333;
+}
+
+.header-title h1 {
+    font-size: 28px;
+    color: #f5576c;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.header-title h2 {
+    font-size: 36px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.btn-add, .btn-add-large {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 17px;
+    box-shadow: 0 6px 20px rgba(245, 87, 108, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-add:hover, .btn-add-large:hover {
+    transform: translateY(-3px); 
+}
+
+.events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px; 
+}
+
+.event-card {
+    background: rgb(247, 236, 138);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.event-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(245, 87, 108, 0.2);
+}
+
+.event-img {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    background-color: #f1f3f5;
+}
+
+.event-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.event-card:hover .event-img img {
+    transform: scale(1.08);
+}
+
+.event-img.placeholder {
+    background: linear-gradient(135deg, #f8f9fa, #f1f3f5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #aaa;
+    font-size: 16px;
+}
+
+.event-info {
+    padding: 20px;
+}
+
+.event-info h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.description {
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    font-size: 15px;
+}
+
+.event-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-view, .btn-edit {
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+
+.btn-view {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    color: white;
+}
+
+.btn-view:hover {
+    background: linear-gradient(135deg, #f5576c, #f093fb);
+    transform: translateY(-2px);
+}
+
+.btn-edit {
+    background: #f8f9fa;
+    color: #f5576c;
+    border: 2px solid #f5576c;
+}
+
+.btn-edit:hover {
+    background: #f5576c;
+    color: white;
+}
+
+.empty {
+    text-align: center;
+    padding: 80px 20px;
+    color: #888;
+    font-size: 18px;
+}
+ 
