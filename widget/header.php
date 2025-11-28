@@ -24,7 +24,7 @@
                     </div>
                 </a>
 
-                <a href="QuanLyCLB.php" class="dropdown-item">
+                <a href="myclub.php" class="dropdown-item">
                     <span class="icon blue">⚙️</span>
                     <div>
                         <h4>Quản lý CLB</h4>

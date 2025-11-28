@@ -16,7 +16,7 @@
         <div class="footer-col">
             <h3>THÔNG TIN LIÊN HỆ</h3>
             <p><i class="ri-map-pin-line"></i> 170 An Dương Vương, Tp. Quy Nhơn</p>
-            <p><i class="ri-mail-line"></i> quanlyCLB@qnu.edu.vn</p>
+            <p><i class="ri-mail-line"></i> leaderclub@qnu.edu.vn</p>
             <p><i class="ri-phone-line"></i> 0123 456 789</p>
         </div>
 
@@ -44,6 +44,4 @@
     </div>
 
 </footer>
-
-
 

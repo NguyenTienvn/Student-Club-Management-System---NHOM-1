@@ -32,7 +32,6 @@ if (!$club) {
     exit();
 }
 
-// Bây giờ mới load header
 $page_css = "club-detail.css";
 load_top();
 load_header();
@@ -142,6 +141,74 @@ try {
                     </div>
                 </div>
             </div>
+            
+            <!-- Upcoming Events -->
+<div class="section-card">
+    <div class="section-header">
+        <h2>📅 Sự kiện sắp tới</h2>
+        <a href="#" class="view-all">Xem tất cả →</a>
+    </div>
+    <div class="events-list">
+        <?php
+        // Lấy danh sách sự kiện
+        $events = [];
+        try {
+            $sql = "SELECT * FROM events 
+                    WHERE club_id = ? AND trang_thai = 'sap_dien_ra' AND thoi_gian_bat_dau >= NOW()
+                    ORDER BY thoi_gian_bat_dau ASC
+                    LIMIT 3";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $club_id);
+            $stmt->execute();
+            $events = $stmt->get_result();
+        } catch (Exception $e) {
+            $events = null;
+        }
+        
+        // Đếm số người đăng ký
+        $event_participants = [];
+        if ($events && $events->num_rows > 0) {
+            $events->data_seek(0);
+            while ($event = $events->fetch_assoc()) {
+                $sql = "SELECT COUNT(*) as total FROM event_registrations WHERE event_id = ? AND trang_thai = 'da_duyet'";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("i", $event['id']);
+                $stmt->execute();
+                $result = $stmt->get_result()->fetch_assoc();
+                $event_participants[$event['id']] = $result['total'];
+            }
+            $events->data_seek(0);
+        }
+        ?>
+        
+        <?php if ($events && $events->num_rows > 0): ?>
+            <?php while ($event = $events->fetch_assoc()): 
+                $event_date = new DateTime($event['thoi_gian_bat_dau']);
+                $start_time = $event_date->format('H:i');
+                $end_date = new DateTime($event['thoi_gian_ket_thuc']);
+                $end_time = $end_date->format('H:i');
+                $participants = $event_participants[$event['id']] ?? 0;
+            ?>
+            <div class="event-card">
+                <div class="event-date">
+                    <div class="date-day"><?php echo $event_date->format('d'); ?></div>
+                    <div class="date-month">Th<?php echo $event_date->format('m'); ?></div>
+                </div>
+                <div class="event-info">
+                    <h4><?php echo htmlspecialchars($event['ten_su_kien']); ?></h4>
+                    <p>🕐 <?php echo $start_time; ?> - <?php echo $end_time; ?> | 📍 <?php echo htmlspecialchars($event['dia_diem'] ?? 'Chưa xác định'); ?></p>
+                    <div class="event-participants">
+                        <span>👥 <?php echo $participants; ?> người tham gia</span>
+                    </div>
+                </div>
+                <button class="btn-event-join" onclick="openEventModal(<?php echo $event['id']; ?>)">Tham gia</button>
+            </div>
+            <?php endwhile; ?>
+        <?php else: ?>
+            <p style="text-align: center; color: #718096; padding: 40px;">Chưa có sự kiện sắp tới</p>
+        <?php endif; ?>
+    </div>
+</div>
 
             <!-- Members Section -->
             <div class="section-card">
@@ -224,8 +291,10 @@ try {
 </div>
 
 <div id="modalContainer"></div>
+<div id="eventModalContainer"></div>
 
 <link rel="stylesheet" href="assets/css/popup_join.css">
+<link rel="stylesheet" href="assets/css/popup_joinsk.css">
 
 <script>
 function openJoinModal(clubId) {
@@ -250,12 +319,11 @@ function openJoinModal(clubId) {
             }
         })
         .catch(err => {
-            console.error('Lỗi khi mở popup:', err);
-            alert('Có lỗi xảy ra khi mở form đăng ký');
+            console.error('Lỗi khi mở popup CLB:', err);
+            alert('Có lỗi xảy ra khi mở form đăng ký CLB');
         });
 }
 
-// Hàm đóng modal
 function closeJoinModal() {
     const modal = document.getElementById('joinClubModal');
     if (modal) {
@@ -266,12 +334,79 @@ function closeJoinModal() {
     }
 }
 
-// Đóng bằng ESC
+function openEventModal(eventId) {
+    console.log('Opening event modal for:', eventId);
+    
+    fetch(`popup_join_event.php?event_id=${eventId}`)
+        .then(r => {
+            if (!r.ok) throw new Error('Network error');
+            return r.text();
+        })
+        .then(html => {
+            document.getElementById('eventModalContainer').innerHTML = html;
+            const modal = document.getElementById('joinEventModal');
+            if (modal) {
+                modal.classList.add('show');
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeEventModal();
+                    }
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Lỗi khi mở popup sự kiện:', err);
+            alert('Có lỗi xảy ra khi mở form đăng ký sự kiện');
+        });
+}
+
+function closeEventModal() {
+    const modal = document.getElementById('joinEventModal');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            const container = document.getElementById('eventModalContainer');
+            if (container) {
+                container.innerHTML = '';
+            }
+        }, 300);
+    }
+}
+
 document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') {
         closeJoinModal();
+        closeEventModal();
     }
 });
+
+function handleClubRegistration(formData) {
+    console.log('Club registration data:', formData);
+}
+ 
+function handleEventRegistration(formData) {
+    console.log('Event registration data:', formData);
+}
+
+function showLoading(button) {
+    const originalText = button.innerHTML;
+    button.innerHTML = '<span>Đang xử lý...</span>';
+    button.disabled = true;
+    return originalText;
+}
+
+function resetButton(button, originalText) {
+    button.innerHTML = originalText;
+    button.disabled = false;
+}
+
+function showSuccessMessage(message) {
+    alert(message);
+}
+
+function showErrorMessage(message) {
+    alert('Lỗi: ' + message);
+}
 </script>
 
 <?php
