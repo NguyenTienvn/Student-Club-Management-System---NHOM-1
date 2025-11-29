@@ -254,7 +254,27 @@
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(245, 87, 108, 0.4);
 }
+.xemsk {
+    font-size: 17px;
+    margin-top: 25px;
+    padding: 14px 32px;
+    border: 1px solid #f5576c;                  /* viền cùng tông màu chính */
+    background: linear-gradient(135deg, #ffffff 0%, #fdf2f8 100%); /* nền trắng → hồng nhạt */
+    color: #f5576c;                              /* chữ màu chính để nổi bật chữ */
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(245, 87, 108, 0.15);
+}
 
+.xemsk:hover {
+    transform: translateY(-3px);
+    background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 8px 25px rgba(245, 87, 108, 0.35);
+}
 /* ====== MEMBER LIST ====== */
 .member-list {
     background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
