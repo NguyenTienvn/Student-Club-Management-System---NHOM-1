@@ -5,10 +5,12 @@ session_start();
 session_unset();
 session_destroy();
 
-// Xóa cookie remember me
-setcookie('remember_user', '', time() - 3600, "/");
+// Xóa cookie remember nếu có
+if (isset($_COOKIE['remember_user'])) {
+    setcookie('remember_user', '', time() - 3600, '/');
+}
 
-// Chuyển hướng về trang chủ
+// Chuyển về trang chủ
 header("Location: trangchu.php");
 exit();
 ?>
