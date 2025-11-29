@@ -1,0 +1,165 @@
+/* phủ nền mờ */
+#popup_add_member {
+    display: none;
+    opacity: 0;
+    pointer-events: none;
+}
+
+#popup_add_member.show {
+    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.popup-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.45);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+/* khung popup */
+.popup-box {
+    background: #fff;
+    width: 520px;
+    padding: 32px;
+    border-radius: 10px;
+    box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 100;
+    overflow: visible;
+}
+
+.search-box {
+    position: relative;
+    width: 90%;
+}
+
+.search-box input {
+    width: 100%;
+    padding: 12px 48px 12px 15px;
+    border-radius: 12px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+.spinner-icon {
+    position: absolute;
+    right: 1px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    opacity: .6;
+}
+
+.spinner-icon:hover {
+    opacity: 1;
+}
+
+/* danh sách autocomplete */
+.search-result {
+    position: absolute;
+    top: 105%;
+    left: 0;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    max-height: 160px !important;
+    overflow-y: auto;
+    display: none;
+    z-index: 99999 !important;
+    padding: 0 !important;
+}
+
+.search-result.hidden {
+    display: none;
+}
+
+.search-result div {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+
+.search-result div:hover {
+    background: #f2f2f2;
+}
+
+/* preview avatar + tên */
+.member-preview {
+    text-align: center;
+    margin: 40px 0 30px 0;
+}
+
+.member-preview img {
+    width: 250px !important;
+    height: 200px !important;
+    object-fit: cover;
+}
+
+.member-preview.hidden {
+    display: none;
+}
+
+/* nút */
+.popup-actions {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.popup-actions .cancel {
+    padding: 10px 22px;
+    border: 1px solid #000;
+    background: #fff;
+    cursor: pointer;
+}
+
+.popup-actions .confirm {
+    padding: 10px 22px;
+    background: #000;
+    color: white;
+    cursor: pointer;
+}
+
+#searchResultMember .item {
+    padding: 6px 10px !important;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+#searchResultMember .item:last-child {
+    border-bottom: none;
+}
+
+.user-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0; /* KHÔNG chia xa */
+    line-height: 1.2;
+}
+
+/* Tên nhỏ hơn */
+.user-name {
+    font-size: 13px;
+    font-weight: 500;
+    margin: 0;
+    padding: 0;
+}
+
+/* Email sát tên + nhỏ hơn */
+.user-email {
+    font-size: 11px;
+    color: #666;
+    margin-top: -2px;   /* kéo sát lên tên */
+    padding: 0;
+}
+
+/* Giảm chiều cao tổng dropdown */
+#searchResultMember {
+    max-height: 160px !important;
+    padding: 0 !important;
+}
