@@ -1,30 +1,7 @@
 <?php
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-session_start(); // Bắt đầu session để lấy user_id đăng nhập
-
-// Kết nối database từ file đã có
-include(__DIR__ . '/assets/database/dbleaderclub.php');  
-
-if (!$conn) {
-    die("Kết nối database thất bại: " . mysqli_connect_error());
-}
-=======
-session_start();
-require_once(__DIR__ . '/assets/database/connect.php');
->>>>>>> Stashed changes
-
-=======
 session_start();
 require_once(__DIR__ . '/assets/database/connect.php');
 
->>>>>>> Stashed changes
-=======
-session_start();
-require_once(__DIR__ . '/assets/database/connect.php');
-
->>>>>>> Stashed changes
 // Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id'])) {
     die("Bạn chưa đăng nhập!");
