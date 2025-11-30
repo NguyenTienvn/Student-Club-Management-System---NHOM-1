@@ -120,9 +120,14 @@ h1{
 .members-grid p {
     font-size: 16px;
     color: #718096;
-    padding: 50px 20px;
+    padding: 50px  30x;
 }
 
+.member-email{
+    margin-bottom: 5px;
+    padding-bottom: 15px;
+    color: #3182ce;
+}
 /* Responsive */
 @media (max-width: 768px) {
     .members-grid {
