@@ -6,8 +6,22 @@ load_header();
 ?>
 
 <?php
-// Lấy ID CLB từ query string
-$club_id = $_SESSION['club_id']  ?? 0;
+// Lấy ID CLB từ query string hoặc session
+if (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0) {
+    $club_id = (int)$_GET['id'];
+    $_SESSION['club_id'] = $club_id; // đồng bộ session
+} elseif (isset($_SESSION['club_id']) && $_SESSION['club_id'] > 0) {
+    $club_id = (int)$_SESSION['club_id'];
+} else {
+    $club_id = 0;
+}
+
+// Kiểm tra nếu không có club_id hợp lệ
+if ($club_id <= 0) {
+    $_SESSION['error'] = "Không tìm thấy câu lạc bộ. Vui lòng chọn CLB từ danh sách.";
+    header("Location: myclub.php");
+    exit;
+}
 
 // Lấy tên người tạo từ session
 $user_id = $_SESSION['user_id'] ?? '';
@@ -17,6 +31,19 @@ $user_id = $_SESSION['user_id'] ?? '';
 <div class = "contain">
 <div class="contain-add-sk">
     <h1>Tạo sự kiện cho Câu Lạc Bộ của bạn</h1>
+    
+    <?php if (isset($_SESSION['error'])): ?>
+        <div style="background: #fee; border: 1px solid #fcc; padding: 15px; margin: 15px 0; border-radius: 8px; color: #c33;">
+            <strong>⚠️ Lỗi:</strong><br>
+            <?= $_SESSION['error']; unset($_SESSION['error']); ?>
+        </div>
+    <?php endif; ?>
+    
+    <?php if (isset($_SESSION['success'])): ?>
+        <div style="background: #efe; border: 1px solid #cfc; padding: 15px; margin: 15px 0; border-radius: 8px; color: #3c3;">
+            <strong>✓ Thành công:</strong> <?= $_SESSION['success']; unset($_SESSION['success']); ?>
+        </div>
+    <?php endif; ?>
   
 <form action="add_Sukien_xuli.php" method="POST" enctype="multipart/form-data" class="form-sk">
     
@@ -83,7 +110,7 @@ $user_id = $_SESSION['user_id'] ?? '';
 
     <input type="hidden" name="club_id" value="<?= htmlspecialchars($club_id) ?>">
     <div class="button-group">
-    <button type="submit" class="btn-submit"  value="<?= $club_id ?>">Tạo sự kiện</button>
+    <button type="submit" class="btn-submit">Tạo sự kiện</button>
     <button type="button" class="btn btn-back" 
             onclick="window.location.href='Dashboard.php?id=<?= $club_id ?>'">
         Quay lại

@@ -25,6 +25,8 @@ function load_header() {
 
 function load_footer() {
     require('widget/footer.php');
+    echo '</body>';
+    echo '</html>';
 }
 
 ?>

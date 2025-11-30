@@ -31,16 +31,6 @@
     }
 }
 
-@keyframes shimmer {
-    0% {
-        background-position: -1000px 0;
-    }
-    100% {
-        background-position: 1000px 0;
-    }
-}
-
-
 /* ===== HERO SECTION ===== */
 .hero-qnu {
     padding-top: 140px;
@@ -161,7 +151,6 @@
     box-shadow: 0 15px 40px rgba(0,0,0,0.3);
 }
 
-
 /* ===== FEATURE SECTION ===== */
 .feature-qnu {
     padding: 120px 100px;
@@ -209,6 +198,7 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 24px;
     transition: all 0.4s ease;
     position: relative;
@@ -246,23 +236,21 @@
     color: white;
 }
 
-
-/* ===== CLB HIGHLIGHT SECTION ===== */
-.highlight-club {
+/* ===== TEAM SECTION ===== */
+.team-section {
     padding: 120px 100px;
     background: linear-gradient(180deg, #f7fafc 0%, #edf2f7 100%);
     text-align: center;
-    position: relative;
 }
 
-.highlight-club h2 {
+.team-section h2 {
     font-size: 48px;
     font-weight: 900;
     margin-bottom: 20px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    letter-spacing: -1px;
+    background-clip: text;
 }
 
 .section-subtitle {
@@ -272,351 +260,127 @@
     font-weight: 500;
 }
 
-.club-grid {
+.team-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 28px;
-    margin-bottom: 60px;
+    gap: 35px;
+    margin-top: 60px;
 }
 
-.club-card-small {
+.team-card {
     background: white;
-    padding: 0;
-    border-radius: 20px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-    text-align: left;
-    min-height: 280px;
-    background-size: cover;
-    background-position: center;
+    border-radius: 24px;
+    padding: 40px 30px;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    border: 3px solid transparent;
     position: relative;
     overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
 }
 
-.club-card-small:hover {
-    transform: translateY(-15px) rotate(2deg);
-    box-shadow: 0 25px 70px rgba(102, 126, 234, 0.35);
-}
-
-.club-card-small::before {
+.team-card::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.7) 100%);
-    z-index: 1;
-    transition: all 0.4s ease;
-}
-
-.club-card-small:hover::before {
-    background: linear-gradient(180deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.9) 100%);
-}
-
-.club-card-small::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     opacity: 0;
     transition: opacity 0.4s ease;
+    z-index: 0;
 }
 
-.club-card-small:hover::after {
-    opacity: 1;
+.team-card:hover::before {
+    opacity: 0.05;
 }
 
-.club-card-small h4,
-.club-card-small p {
-    position: relative;
-    z-index: 2;
-    transition: all 0.3s ease;
-}
-
-.club-card-small h4 {
-    font-size: 22px;
-    margin-bottom: 12px;
-    font-weight: 800;
-    color: white;
-    line-height: 1.3;
-    padding: 0 24px;
-    margin-top: auto;
-    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-
-.club-card-small .member-count {
-    font-size: 15px;
-    color: rgba(255, 255, 255, 0.95);
-    margin-bottom: 8px;
-    font-weight: 600;
-    padding: 0 24px;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.3);
-}
-
-.club-card-small .club-category {
-    font-size: 13px;
-    color: white;
-    font-weight: 800;
-    margin-bottom: 24px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    padding: 8px 24px;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    display: inline-block;
-    border-radius: 20px;
-    margin-left: 24px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
-
-.club-card-small:hover .club-category {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(1.05);
-}
-
-/* Background images cho từng CLB với gradient overlay */
-.club-bg-1 {
-    background-image: linear-gradient(180deg, rgba(255,107,107,0.3) 0%, rgba(255,107,107,0.1) 100%), 
-                      url('https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=500');
-}
-
-.club-bg-2 {
-    background-image: linear-gradient(180deg, rgba(72,187,120,0.3) 0%, rgba(72,187,120,0.1) 100%), 
-                      url('https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=500');
-}
-
-.club-bg-3 {
-    background-image: linear-gradient(180deg, rgba(66,153,225,0.3) 0%, rgba(66,153,225,0.1) 100%), 
-                      url('https://images.unsplash.com/photo-1557804506-669a67965ba0?w=500');
-}
-
-.club-bg-4 {
-    background-image: linear-gradient(180deg, rgba(237,137,54,0.3) 0%, rgba(237,137,54,0.1) 100%), 
-                      url('https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=500');
-}
-
-.view-all {
-    margin-top: 20px;
-    font-size: 18px;
-    font-weight: 700;
-    padding: 16px 50px;
-    transition: all 0.3s ease;
-    border-radius: 50px;
-    border: 3px solid #667eea;
-}
-
-.view-all:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(102, 126, 234, 0.4);
-    background: #667eea;
-    color: white;
-}
-
-
-/* ===== UPCOMING EVENTS ===== */
-.upcoming-events {
-    padding: 120px 100px;
-    background: white;
-    text-align: center;
-}
-
-.upcoming-events h2 {
-    font-size: 48px;
-    font-weight: 900;
-    margin-bottom: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.event-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 35px;
-    margin-top: 60px;
-}
-
-.event-card {
-    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    border-radius: 20px;
-    padding: 35px;
-    text-align: left;
-    display: flex;
-    gap: 25px;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 3px solid transparent;
-    position: relative;
-    overflow: hidden;
-}
-
-.event-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    transition: left 0.6s;
-}
-
-.event-card:hover::before {
-    left: 100%;
-}
-
-.event-card:hover {
-    transform: translateY(-10px) scale(1.03);
-    box-shadow: 0 20px 50px rgba(102, 126, 234, 0.3);
-    border-color: #667eea;
-}
-
-.event-date {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 16px;
-    padding: 20px;
-    text-align: center;
-    min-width: 80px;
-    height: fit-content;
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-}
-
-.date-day {
-    display: block;
-    font-size: 36px;
-    font-weight: 900;
-    line-height: 1;
-}
-
-.date-month {
-    display: block;
-    font-size: 15px;
-    margin-top: 8px;
-    opacity: 0.95;
-    font-weight: 600;
-}
-
-.event-info h4 {
-    font-size: 19px;
-    font-weight: 800;
-    color: #2d3748;
-    margin-bottom: 14px;
-    line-height: 1.4;
-}
-
-.event-location,
-.event-time {
-    font-size: 15px;
-    color: #718096;
-    margin-bottom: 10px;
-    font-weight: 500;
-}
-
-.event-badge {
-    display: inline-block;
-    background: #48bb78;
-    color: white;
-    padding: 6px 16px;
-    border-radius: 25px;
-    font-size: 13px;
-    font-weight: 700;
-    margin-top: 12px;
-    box-shadow: 0 4px 15px rgba(72, 187, 120, 0.4);
-}
-
-.event-badge.hot {
-    background: linear-gradient(135deg, #f56565 0%, #ed8936 100%);
-    animation: shimmer 2s infinite;
-}
-
-
-/* ===== NEWS SECTION ===== */
-.news-section {
-    padding: 120px 100px;
-    background: linear-gradient(180deg, #f7fafc 0%, #edf2f7 100%);
-    text-align: center;
-}
-
-.news-section h2 {
-    font-size: 48px;
-    font-weight: 900;
-    margin-bottom: 20px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.news-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 35px;
-    margin-top: 60px;
-}
-
-.news-card {
-    background: white;
-    border-radius: 20px;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 8px 30px rgba(0,0,0,0.08);
-    border: 3px solid transparent;
-}
-
-.news-card:hover {
-    transform: translateY(-12px) scale(1.02);
+.team-card:hover {
+    transform: translateY(-15px) scale(1.05);
     box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
     border-color: #667eea;
 }
 
-.news-card img {
+.team-avatar {
+    width: 150px;
+    height: 150px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 5px solid #667eea;
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    transition: all 0.4s ease;
+    position: relative;
+    z-index: 1;
+}
+
+.team-card:hover .team-avatar {
+    transform: scale(1.1) rotate(5deg);
+    border-color: #764ba2;
+}
+
+.team-avatar img {
     width: 100%;
-    height: 220px;
+    height: 100%;
     object-fit: cover;
-    transition: transform 0.4s ease;
 }
 
-.news-card:hover img {
-    transform: scale(1.1);
-}
-
-.news-content {
-    padding: 30px;
-    text-align: left;
-}
-
-.news-category {
-    display: inline-block;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 6px 16px;
-    border-radius: 25px;
-    font-size: 13px;
-    font-weight: 700;
-    margin-bottom: 14px;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-}
-
-.news-content h4 {
-    font-size: 18px;
+.team-card h4 {
+    font-size: 22px;
     font-weight: 800;
     color: #2d3748;
-    margin-bottom: 14px;
-    line-height: 1.5;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
 }
 
-.news-date {
+.team-role {
+    font-size: 15px;
+    color: #667eea;
+    font-weight: 700;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    position: relative;
+    z-index: 1;
+}
+
+.team-desc {
     font-size: 14px;
-    color: #a0aec0;
-    font-weight: 600;
+    color: #718096;
+    line-height: 1.6;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
 }
 
+.team-social {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.team-social a {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #667eea;
+    font-size: 18px;
+    transition: all 0.3s ease;
+}
+
+.team-social a:hover {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-3px) rotate(10deg);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
 
 /* ===== BENEFITS SECTION ===== */
 .benefits-section {
@@ -632,6 +396,7 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .benefits-grid {
@@ -678,7 +443,6 @@
     color: #718096;
     line-height: 1.7;
 }
-
 
 /* ===== CTA SECTION ===== */
 .cta-section {
@@ -760,15 +524,12 @@
     transform: translateY(-5px);
 }
 
-
 /* ===== RESPONSIVE ===== */
 @media(max-width: 1200px) {
     .hero-qnu,
     .feature-qnu,
-    .highlight-club,
-    .upcoming-events,
-    .news-section,
     .benefits-section,
+    .team-section,
     .cta-section {
         padding-inline: 60px;
     }
@@ -808,29 +569,23 @@
     .feature-item {
         width: 100%;
     }
-
-    .club-grid {
+    
+    .team-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 20px;
+        gap: 25px;
     }
     
-    .highlight-club,
-    .upcoming-events,
-    .news-section,
     .benefits-section,
+    .team-section,
     .cta-section {
         padding: 80px 30px;
     }
     
-    .highlight-club h2,
-    .upcoming-events h2,
-    .news-section h2,
-    .benefits-section h2 {
+    .benefits-section h2,
+    .team-section h2 {
         font-size: 36px;
     }
     
-    .event-grid,
-    .news-grid,
     .benefits-grid {
         grid-template-columns: repeat(1, 1fr);
         gap: 20px;
@@ -848,7 +603,7 @@
 }
 
 @media(max-width: 560px) {
-    .club-grid {
+    .team-grid {
         grid-template-columns: repeat(1, 1fr);
     }
 
@@ -858,14 +613,6 @@
     
     .hero-left p {
         font-size: 16px;
-    }
-    
-    .event-card {
-        flex-direction: column;
-    }
-    
-    .event-date {
-        width: fit-content;
     }
     
     .cta-content h2 {

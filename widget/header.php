@@ -34,7 +34,7 @@
             </div>
         </div>
 
-        <a href="#">Sự kiện</a>
+        <a href="Danhsachsukien.php">Sự kiện</a>
         <a href="lien-he.php">Liên hệ</a>
     </nav>
 

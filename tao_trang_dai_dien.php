@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$club_id = $_SESSION['club_id'] ?? 0;
+$club_id = $_GET['id'] ?? $_SESSION['club_id'] ?? 0;
 
 if ($club_id <= 0) {
     $_SESSION['error'] = "Không tìm thấy câu lạc bộ!";
@@ -28,6 +28,13 @@ $stmt->bind_param("i", $club_id);
 $stmt->execute();
 $club = $stmt->get_result()->fetch_assoc();
 
+// Kiểm tra nếu không tìm thấy club
+if (!$club) {
+    $_SESSION['error'] = "Không tìm thấy thông tin câu lạc bộ!";
+    header("Location: myclub.php");
+    exit;
+}
+
 // Lấy thông tin trang đại diện nếu đã có
 $club_page = null;
 $table_check = $conn->query("SHOW TABLES LIKE 'club_pages'");
@@ -42,188 +49,243 @@ if ($table_check && $table_check->num_rows > 0) {
     }
 }
 
+// Đếm số thành viên
+$sql = "SELECT COUNT(*) as total FROM club_members WHERE club_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $club_id);
+$stmt->execute();
+$member_count = $stmt->get_result()->fetch_assoc()['total'];
+
+$page_css = "tao_trang_dai_dien.css";
 load_top();
 load_header();
 ?>
 
-<link rel="stylesheet" href="assets/css/tao_trang_dai_dien.css">
-
-<div class="page-container">
+<div class="appearance-container">
     <div class="page-header">
-        <h1>
-            <span class="back-btn" onclick="window.location.href='Dashboard.php?id=<?= $club_id ?>'">←</span>
-            Tạo Trang Đại Diện
-        </h1>
-        <p class="subtitle">Tùy chỉnh trang công khai cho Câu Lạc Bộ của bạn</p>
+        <div class="header-content">
+            <h1>🎨 Tùy chỉnh giao diện trang CLB</h1>
+            <p>Chỉnh sửa giao diện trang chi tiết câu lạc bộ của bạn</p>
+        </div>
     </div>
 
-    <form action="tao_trang_dai_dien_xuli.php" method="POST" enctype="multipart/form-data" class="page-form">
-        
-        <!-- Preview Section -->
-        <div class="preview-section">
-            <h2>👁️ Xem trước trang của bạn</h2>
-            <div class="preview-box">
-                <div class="preview-banner" id="previewBanner" <?php if (!empty($club_page['banner_url'])): ?>style="background-image: url('<?= htmlspecialchars($club_page['banner_url']) ?>'); background-size: cover; background-position: center;"<?php endif; ?>>
-                    <?php if (empty($club_page['banner_url'])): ?>
-                        <span class="preview-placeholder">Ảnh bìa CLB</span>
-                    <?php endif; ?>
-                </div>
-                <div class="preview-content">
-                    <div class="preview-avatar" id="previewAvatar" <?php if (!empty($club['logo']) && file_exists($club['logo'])): ?>style="background-image: url('<?= htmlspecialchars($club['logo']) ?>'); background-size: cover;"<?php endif; ?>>
-                        <?php if (empty($club['logo']) || !file_exists($club['logo'])): ?>
-                            <span>Logo</span>
-                        <?php endif; ?>
-                    </div>
-                    <h3 id="previewName"><?= htmlspecialchars($club['ten_clb'] ?? 'Tên Câu Lạc Bộ') ?></h3>
-                    <p id="previewSlogan"><?= htmlspecialchars($club_page['slogan'] ?? 'Slogan của bạn sẽ hiển thị ở đây') ?></p>
-                </div>
-            </div>
+    <?php if (isset($_SESSION['success'])): ?>
+        <div class="alert alert-success">
+            ✓ <?= $_SESSION['success'] ?>
         </div>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
 
-        <!-- Form Settings -->
-        <div class="settings-section">
-            <h2>⚙️ Cài đặt trang</h2>
-
-            <div class="form-group">
-                <label>🎨 Ảnh bìa trang</label>
-                <div class="upload-area">
-                    <?php if (!empty($club_page['banner_url'])): ?>
-                        <img src="<?= htmlspecialchars($club_page['banner_url']) ?>" id="bannerPreview" class="image-preview" alt="Banner preview">
-                    <?php else: ?>
-                        <img id="bannerPreview" class="image-preview" alt="Banner preview" style="display:none;">
-                    <?php endif; ?>
-                    <label class="upload-btn">
-                        📷 <?= !empty($club_page['banner_url']) ? 'Thay đổi ảnh bìa' : 'Chọn ảnh bìa' ?>
-                        <input type="file" name="banner" id="bannerInput" accept="image/*" style="display:none">
-                    </label>
-                    <p class="hint">Kích thước đề xuất: 1200x400px (ảnh ngang)</p>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>🖼️ Logo/Avatar CLB</label>
-                <div class="upload-area">
-                    <?php 
-                    $current_logo = '';
-                    if (!empty($club_page['logo_url'])) {
-                        $current_logo = $club_page['logo_url'];
-                    } elseif (!empty($club['logo']) && file_exists($club['logo'])) {
-                        $current_logo = $club['logo'];
-                    }
-                    ?>
-                    <?php if ($current_logo): ?>
-                        <img src="<?= htmlspecialchars($current_logo) ?>" id="avatarPreview" class="image-preview avatar-preview" alt="Avatar preview">
-                    <?php else: ?>
-                        <img id="avatarPreview" class="image-preview avatar-preview" alt="Avatar preview" style="display:none;">
-                    <?php endif; ?>
-                    <label class="upload-btn">
-                        📷 <?= $current_logo ? 'Thay đổi logo' : 'Chọn logo' ?>
-                        <input type="file" name="avatar" id="avatarInput" accept="image/*" style="display:none">
-                    </label>
-                    <p class="hint">Kích thước đề xuất: 200x200px (hình vuông)</p>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>✨ Slogan/Khẩu hiệu</label>
-                <input type="text" name="slogan" id="sloganInput" placeholder="VD: Nơi đam mê được thăng hoa" maxlength="100" value="<?= htmlspecialchars($club_page['slogan'] ?? '') ?>">
-            </div>
-
-            <div class="form-group">
-                <label>📝 Giới thiệu ngắn</label>
-                <textarea name="description" id="descriptionInput" rows="4" placeholder="Mô tả ngắn gọn về CLB của bạn..."><?= htmlspecialchars($club_page['description'] ?? $club['mo_ta'] ?? '') ?></textarea>
-            </div>
-
-            <div class="form-group">
-                <label>🎨 Màu chủ đạo</label>
-                <div class="color-picker-group">
-                    <input type="color" name="primary_color" id="primaryColor" value="<?= htmlspecialchars($club_page['primary_color'] ?? $club['color'] ?? '#667eea') ?>">
-                    <span class="color-label">Màu chính</span>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label>🔗 Liên kết mạng xã hội</label>
-                <div class="social-inputs">
-                    <div class="social-input">
-                        <span class="social-icon">📘</span>
-                        <input type="url" name="facebook" placeholder="Link Facebook" value="<?= htmlspecialchars($club_page['facebook'] ?? '') ?>">
-                    </div>
-                    <div class="social-input">
-                        <span class="social-icon">📷</span>
-                        <input type="url" name="instagram" placeholder="Link Instagram" value="<?= htmlspecialchars($club_page['instagram'] ?? '') ?>">
-                    </div>
-                    <div class="social-input">
-                        <span class="social-icon">🐦</span>
-                        <input type="url" name="twitter" placeholder="Link Twitter" value="<?= htmlspecialchars($club_page['twitter'] ?? '') ?>">
-                    </div>
-                    <div class="social-input">
-                        <span class="social-icon">🌐</span>
-                        <input type="url" name="website" placeholder="Website" value="<?= htmlspecialchars($club_page['website'] ?? $club['website'] ?? '') ?>">
-                    </div>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label class="toggle-label">
-                    <input type="checkbox" name="is_public" value="1" <?= (!isset($club_page['is_public']) || $club_page['is_public'] == 1) ? 'checked' : '' ?>>
-                    <span class="toggle-text">🌍 Công khai trang (cho phép mọi người xem)</span>
-                </label>
-            </div>
+    <?php if (isset($_SESSION['error'])): ?>
+        <div class="alert alert-error">
+            ✗ <?= $_SESSION['error'] ?>
         </div>
+        <?php unset($_SESSION['error']); ?>
+    <?php endif; ?>
 
+    <form action="tao_trang_dai_dien_xuli.php" method="POST" enctype="multipart/form-data" class="appearance-form">
         <input type="hidden" name="club_id" value="<?= $club_id ?>">
 
-        <div class="button-group">
-            <button type="submit" class="btn-save">💾 Lưu và Xuất bản</button>
-            <button type="button" class="btn-cancel" onclick="window.location.href='Dashboard.php?id=<?= $club_id ?>'">
-                ❌ Hủy
+        <!-- Thông tin cơ bản -->
+        <div class="form-section">
+            <div class="section-header">
+                <h2>📝 Thông tin cơ bản</h2>
+                <p>Thông tin hiển thị trên trang chi tiết CLB</p>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group full-width">
+                    <label for="slogan">Slogan câu lạc bộ</label>
+                    <input type="text" id="slogan" name="slogan" 
+                           value="<?= htmlspecialchars($club_page['slogan'] ?? '') ?>"
+                           placeholder="VD: Nơi đam mê công nghệ được thắp sáng">
+                    <small>Câu khẩu hiệu ngắn gọn, ấn tượng của CLB</small>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="description">Mô tả chi tiết</label>
+                    <textarea id="description" name="description" rows="5" 
+                              placeholder="Giới thiệu chi tiết về câu lạc bộ..."><?= htmlspecialchars($club_page['description'] ?? $club['mo_ta'] ?? '') ?></textarea>
+                    <small>Mô tả đầy đủ về CLB, hoạt động và mục tiêu</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hình ảnh -->
+        <div class="form-section">
+            <div class="section-header">
+                <h2>🖼️ Hình ảnh</h2>
+                <p>Ảnh bìa và logo hiển thị trên trang CLB</p>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="banner">Ảnh bìa</label>
+                    <div class="image-upload-area">
+                        <input type="file" id="banner" name="banner" accept="image/*" onchange="previewImage(this, 'banner-preview')">
+                        <div class="upload-placeholder" id="banner-preview">
+                            <?php if (!empty($club_page['banner_url'])): ?>
+                                <img src="<?= htmlspecialchars($club_page['banner_url']) ?>" alt="Banner">
+                            <?php else: ?>
+                                <span class="upload-icon">📷</span>
+                                <span>Chọn ảnh bìa</span>
+                                <small>Kích thước đề xuất: 1920x600px</small>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="avatar">Logo/Avatar CLB</label>
+                    <div class="image-upload-area">
+                        <input type="file" id="avatar" name="avatar" accept="image/*" onchange="previewImage(this, 'avatar-preview')">
+                        <div class="upload-placeholder avatar-placeholder" id="avatar-preview">
+                            <?php if (!empty($club_page['logo_url']) || !empty($club['logo'])): ?>
+                                <img src="<?= htmlspecialchars($club_page['logo_url'] ?? $club['logo']) ?>" alt="Logo">
+                            <?php else: ?>
+                                <span class="upload-icon">🎨</span>
+                                <span>Chọn logo</span>
+                                <small>Kích thước đề xuất: 500x500px</small>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Màu sắc -->
+        <div class="form-section">
+            <div class="section-header">
+                <h2>🎨 Màu sắc chủ đạo</h2>
+                <p>Chọn màu sắc đại diện cho CLB</p>
+            </div>
+            
+            <div class="color-picker-group">
+                <div class="form-group">
+                    <label for="primary_color">Màu chính</label>
+                    <div class="color-input-wrapper">
+                        <input type="color" id="primary_color" name="primary_color" 
+                               value="<?= htmlspecialchars($club_page['primary_color'] ?? $club['color'] ?? '#667eea') ?>">
+                        <input type="text" class="color-text" 
+                               value="<?= htmlspecialchars($club_page['primary_color'] ?? $club['color'] ?? '#667eea') ?>" 
+                               readonly>
+                    </div>
+                </div>
+
+                <div class="color-presets">
+                    <label>Màu gợi ý:</label>
+                    <div class="preset-colors">
+                        <button type="button" class="color-preset" style="background: #667eea" onclick="setColor('#667eea')"></button>
+                        <button type="button" class="color-preset" style="background: #f093fb" onclick="setColor('#f093fb')"></button>
+                        <button type="button" class="color-preset" style="background: #4facfe" onclick="setColor('#4facfe')"></button>
+                        <button type="button" class="color-preset" style="background: #43e97b" onclick="setColor('#43e97b')"></button>
+                        <button type="button" class="color-preset" style="background: #fa709a" onclick="setColor('#fa709a')"></button>
+                        <button type="button" class="color-preset" style="background: #feca57" onclick="setColor('#feca57')"></button>
+                        <button type="button" class="color-preset" style="background: #ff6b6b" onclick="setColor('#ff6b6b')"></button>
+                        <button type="button" class="color-preset" style="background: #5f27cd" onclick="setColor('#5f27cd')"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Liên kết mạng xã hội -->
+        <div class="form-section">
+            <div class="section-header">
+                <h2>🔗 Mạng xã hội</h2>
+                <p>Liên kết đến các trang mạng xã hội của CLB</p>
+            </div>
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="facebook">
+                        <span class="social-icon">📘</span> Facebook
+                    </label>
+                    <input type="url" id="facebook" name="facebook" 
+                           value="<?= htmlspecialchars($club_page['facebook'] ?? '') ?>"
+                           placeholder="https://facebook.com/yourclub">
+                </div>
+
+                <div class="form-group">
+                    <label for="instagram">
+                        <span class="social-icon">📷</span> Instagram
+                    </label>
+                    <input type="url" id="instagram" name="instagram" 
+                           value="<?= htmlspecialchars($club_page['instagram'] ?? '') ?>"
+                           placeholder="https://instagram.com/yourclub">
+                </div>
+
+                <div class="form-group">
+                    <label for="twitter">
+                        <span class="social-icon">🐦</span> Twitter
+                    </label>
+                    <input type="url" id="twitter" name="twitter" 
+                           value="<?= htmlspecialchars($club_page['twitter'] ?? '') ?>"
+                           placeholder="https://twitter.com/yourclub">
+                </div>
+
+                <div class="form-group">
+                    <label for="website">
+                        <span class="social-icon">🌐</span> Website
+                    </label>
+                    <input type="url" id="website" name="website" 
+                           value="<?= htmlspecialchars($club_page['website'] ?? $club['website'] ?? '') ?>"
+                           placeholder="https://yourclub.com">
+                </div>
+            </div>
+        </div>
+
+        <!-- Cài đặt hiển thị -->
+        <div class="form-section">
+            <div class="section-header">
+                <h2>⚙️ Cài đặt hiển thị</h2>
+                <p>Tùy chọn hiển thị trang CLB</p>
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="is_public" value="1" 
+                           <?= ($club_page['is_public'] ?? 1) ? 'checked' : '' ?>>
+                    <span>Công khai trang CLB</span>
+                </label>
+                <small>Cho phép mọi người xem trang chi tiết CLB</small>
+            </div>
+        </div>
+
+        <!-- Nút hành động -->
+        <div class="form-actions">
+            <button type="button" class="btn-secondary" onclick="location.href='Dashboard.php?id=<?= $club_id ?>'">
+                ← Quay lại
+            </button>
+            <button type="button" class="btn-preview" onclick="window.open('club-detail.php?id=<?= $club_id ?>', '_blank')">
+                👁️ Xem trước
+            </button>
+            <button type="submit" class="btn-primary">
+                💾 Lưu thay đổi
             </button>
         </div>
     </form>
 </div>
 
 <script>
-// Preview Banner
-document.getElementById('bannerInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if(file) {
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    if (input.files && input.files[0]) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            const preview = document.getElementById('bannerPreview');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            document.getElementById('previewBanner').style.backgroundImage = `url(${e.target.result})`;
-            document.getElementById('previewBanner').innerHTML = '';
+            preview.innerHTML = '<img src="' + e.target.result + '" alt="Preview">';
         }
-        reader.readAsDataURL(file);
+        reader.readAsDataURL(input.files[0]);
     }
-});
+}
 
-// Preview Avatar
-document.getElementById('avatarInput').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if(file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const preview = document.getElementById('avatarPreview');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            document.getElementById('previewAvatar').style.backgroundImage = `url(${e.target.result})`;
-            document.getElementById('previewAvatar').innerHTML = '';
-        }
-        reader.readAsDataURL(file);
-    }
-});
+function setColor(color) {
+    document.getElementById('primary_color').value = color;
+    document.querySelector('.color-text').value = color;
+}
 
-// Preview Slogan
-document.getElementById('sloganInput').addEventListener('input', function(e) {
-    document.getElementById('previewSlogan').textContent = e.target.value || 'Slogan của bạn sẽ hiển thị ở đây';
-});
-
-// Preview Color
-document.getElementById('primaryColor').addEventListener('input', function(e) {
-    document.querySelector('.preview-box').style.borderColor = e.target.value;
+// Sync color picker with text input
+document.getElementById('primary_color').addEventListener('input', function() {
+    document.querySelector('.color-text').value = this.value;
 });
 </script>
 

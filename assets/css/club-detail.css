@@ -111,17 +111,18 @@ body {
     flex-shrink: 0;
 }
 
-.btn-join, .btn-joined {
+.btn-join, .btn-joined, .btn-manage {
     padding: 12px 28px;
     border-radius: 12px;
     font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    transition: opacity 0.2s ease, box-shadow 0.2s ease;
+    transition: opacity 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     border: none;
     display: flex;
     align-items: center;
     gap: 8px;
+    text-decoration: none;
 }
 
 .btn-join {
@@ -133,6 +134,7 @@ body {
 .btn-join:hover {
     box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
     opacity: 0.95;
+    transform: translateY(-2px);
 }
 
 .btn-joined {
@@ -140,6 +142,18 @@ body {
     color: white;
     cursor: default;
     box-shadow: 0 10px 30px rgba(72, 187, 120, 0.3);
+}
+
+.btn-manage {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    box-shadow: 0 10px 30px rgba(240, 147, 251, 0.4);
+}
+
+.btn-manage:hover {
+    box-shadow: 0 12px 35px rgba(240, 147, 251, 0.5);
+    opacity: 0.95;
+    transform: translateY(-2px);
 }
 
 /* Main Content */

@@ -13,14 +13,14 @@
 .contain {
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding: 40px 20px;
+    padding: 120px 20px 40px 20px;
     animation: fadeIn 0.8s ease-out;
 }
 
 .contain-add-sk { 
     width: 92%;
     max-width: 900px;
-    margin: 100px auto 60px;
+    margin: 0 auto;
     padding: 50px 60px;
     background: #fff;
     border-radius: 24px;
@@ -91,6 +91,8 @@ input[type="text"],
 input[type="number"],
 input[type="date"],
 input[type="datetime-local"],
+input[type="file"],
+select,
 textarea {
     width: 100%;
     padding: 14px 16px;
@@ -103,7 +105,22 @@ textarea {
     color: #2d3748;
 }
 
+select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%232d3748' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 40px;
+}
+
+input[type="file"] {
+    padding: 10px;
+    cursor: pointer;
+}
+
 input:focus,
+select:focus,
 textarea:focus {
     border-color: #667eea;
     background: #fff;
@@ -113,6 +130,7 @@ textarea:focus {
 }
 
 input:hover,
+select:hover,
 textarea:hover {
     border-color: #cbd5e0;
 }
@@ -232,10 +250,14 @@ textarea {
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 768px) {
+    .contain {
+        padding: 100px 15px 30px 15px;
+    }
+    
     .contain-add-sk {
         width: 95%;
         padding: 35px 25px;
-        margin: 80px auto 40px;
+        margin: 0 auto;
     }
     
     .contain-add-sk h1 {
@@ -265,7 +287,7 @@ textarea {
 
 @media (max-width: 480px) {
     .contain {
-        padding: 20px 10px;
+        padding: 90px 10px 20px 10px;
     }
     
     .contain-add-sk {
@@ -275,4 +297,57 @@ textarea {
     .contain-add-sk h1 {
         font-size: 24px;
     }
+}
+/* ====
+= EDIT EVENT - CURRENT IMAGE ===== */
+.current-image {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.current-image img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    object-fit: cover;
+}
+
+.image-note {
+    margin-top: 10px;
+    font-size: 14px;
+    color: #718096;
+    font-style: italic;
+}
+
+.no-image {
+    padding: 60px 20px;
+    background: #f7fafc;
+    border: 2px dashed #cbd5e0;
+    border-radius: 12px;
+    color: #a0aec0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* ===== ALERT MESSAGES ===== */
+.alert {
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    font-size: 15px;
+    line-height: 1.6;
+    animation: slideUp 0.4s ease-out;
+}
+
+.alert-error {
+    background: #fff5f5;
+    border: 2px solid #fc8181;
+    color: #c53030;
+}
+
+.alert-success {
+    background: #f0fff4;
+    border: 2px solid #68d391;
+    color: #2f855a;
 }

@@ -7,20 +7,27 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+// DEBUG: Kiểm tra dữ liệu POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    $_SESSION['error'] = "Phương thức request không hợp lệ!";
+    header("Location: myclub.php");
+    exit;
+}
+
 // === 1. Kiểm tra đăng nhập ===
 if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
     $_SESSION['error'] = "Bạn cần đăng nhập để tạo sự kiện!";
-    header("Location: dangnhap.php");
+    header("Location: login.php");
     exit;
 }
 
 $user_id = $_SESSION['user_id'];
 
 // === 2. Kiểm tra club_id ===
-$club_id = (int)$_POST['club_id'];
+$club_id = isset($_POST['club_id']) ? (int)$_POST['club_id'] : 0;
 if ($club_id <= 0) {
-    $_SESSION['error'] = "Câu lạc bộ không hợp lệ.";
-    header("Location: Dashboard.php");
+    $_SESSION['error'] = "Câu lạc bộ không hợp lệ. Vui lòng thử lại.";
+    header("Location: myclub.php");
     exit;
 }
 
@@ -63,8 +70,8 @@ if (strtotime($han_dang_ky) >= strtotime($tg_bat_dau)) {
 }
 
 if (!empty($errors)) {
-    $_SESSION['error'] = implode("<br>• ", $errors);
-    header("Location: add_Sukien.php");
+    $_SESSION['error'] = "• " . implode("<br>• ", $errors);
+    header("Location: add_Su_kien.php?id=$club_id");
     exit;
 }
 
@@ -72,7 +79,7 @@ if (!empty($errors)) {
 $anh_bia = '';
 if (!isset($_FILES['anhbia']) || $_FILES['anhbia']['error'] !== UPLOAD_ERR_OK) {
     $_SESSION['error'] = "Vui lòng tải lên ảnh bìa!";
-    header("Location: add_Sukien.php");
+    header("Location: add_Su_kien.php?id=$club_id");
     exit;
 }
 
@@ -81,12 +88,12 @@ $ext     = strtolower(pathinfo($_FILES['anhbia']['name'], PATHINFO_EXTENSION));
 
 if (!in_array($ext, $allowed)) {
     $_SESSION['error'] = "Chỉ chấp nhận file: jpg, jpeg, png, gif, webp";
-    header("Location: add_Sukien.php");
+    header("Location: add_Su_kien.php?id=$club_id");
     exit;
 }
-if ($_FILES['anhbia']['size'] > 5 * 1024 * 1024) {
-    $_SESSION['error'] = "Ảnh bìa không được quá 5MB!";
-    header("Location: add_Sukien.php");
+if ($_FILES['anhbia']['size'] > 20 * 1024 * 1024) {
+    $_SESSION['error'] = "Ảnh bìa không được quá 20MB!";
+    header("Location: add_Su_kien.php?id=$club_id");
     exit;
 }
 
@@ -99,7 +106,7 @@ $full_path   = $upload_dir . $file_name;
 
 if (!move_uploaded_file($_FILES['anhbia']['tmp_name'], $full_path)) {
     $_SESSION['error'] = "Lỗi upload ảnh!";
-    header("Location: add_Sukien.php");
+    header("Location: add_Su_kien.php?id=$club_id");
     exit;
 }
 $anh_bia = $target_path;
@@ -119,28 +126,30 @@ if (!$stmt) {
 
 $stmt->bind_param(
     "isssssssissi",
-    $club_id,
-    $ten_su_kien,
-    $mo_ta,
-    $noi_dung_chi_tiet,
-    $anh_bia,
-    $dia_diem,
-    $tg_bat_dau,
-    $tg_ket_thuc,
-    $so_luong,
-    $han_dang_ky,
-    $trang_thai,
-    $user_id
+    $club_id,           // i - integer (1)
+    $ten_su_kien,       // s - string (2)
+    $mo_ta,             // s - string (3)
+    $noi_dung_chi_tiet, // s - string (4)
+    $anh_bia,           // s - string (5)
+    $dia_diem,          // s - string (6)
+    $tg_bat_dau,        // s - string (7)
+    $tg_ket_thuc,       // s - string (8)
+    $so_luong,          // i - integer (9)
+    $han_dang_ky,       // s - string (10)
+    $trang_thai,        // s - string (11)
+    $user_id            // i - integer (12)
 );
 
 
 if ($stmt->execute()) {
     $_SESSION['success'] = "Tạo sự kiện thành công!";
     header("Location: Dashboard.php?id=$club_id");
+    exit;
 } else {
     unlink($full_path);
     $_SESSION['error'] = "Lỗi tạo sự kiện: " . $stmt->error;
-    header("Location: add_Sukien.php");
+    header("Location: add_Su_kien.php?id=$club_id");
+    exit;
 }
 $stmt->close();
 $conn->close();

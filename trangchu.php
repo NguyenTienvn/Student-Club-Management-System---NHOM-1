@@ -45,121 +45,65 @@ load_header();
 </section>
 
 
-<!-- DANH SÁCH CLB NỔI BẬT -->
-<section class="highlight-club">
-    <h2>CLB nổi bật tại QNU</h2>
-    <p class="section-subtitle">Khám phá các câu lạc bộ năng động và sáng tạo nhất</p>
+<!-- ĐỘI NGŨ PHÁT TRIỂN -->
+<section class="team-section">
+    <h2>Đội ngũ phát triển</h2>
+    <p class="section-subtitle">Những người đã xây dựng và phát triển hệ thống</p>
 
-    <div class="club-grid">
-        <div class="club-card-small club-bg-1">
-            <h4>Đội Thanh Niên Xung Kích QNU</h4>
-            <p class="member-count">👥 140 thành viên</p>
-            <p class="club-category">Sự kiện</p>
-        </div>
-
-        <div class="club-card-small club-bg-2">
-            <h4>Đội Thanh Niên Tình Nguyện</h4>
-            <p class="member-count">👥 55 thành viên</p>
-            <p class="club-category">Tình nguyện</p>
-        </div>
-
-        <div class="club-card-small club-bg-3">
-            <h4>CLB Kết Nối Trẻ</h4>
-            <p class="member-count">👥 120 thành viên</p>
-            <p class="club-category">Truyền thông</p>
-        </div>
-
-        <div class="club-card-small club-bg-4">
-            <h4>CLB Tiếng Anh LET's Go</h4>
-            <p class="member-count">👥 95 thành viên</p>
-            <p class="club-category">Ngôn ngữ</p>
-        </div>
-    </div>
-
-    <button class="btn outline view-all" onclick="location.href='DanhsachCLB.php'">
-        Xem tất cả CLB →
-    </button>
-</section>
-
-
-<!-- SỰ KIỆN SẮP DIỄN RA -->
-<section class="upcoming-events">
-    <h2>Sự kiện sắp diễn ra</h2>
-    <p class="section-subtitle">Đừng bỏ lỡ những hoạt động thú vị</p>
-
-    <div class="event-grid">
-        <div class="event-card">
-            <div class="event-date">
-                <span class="date-day">25</span>
-                <span class="date-month">Th11</span>
+    <div class="team-grid">
+        <div class="team-card">
+            <div class="team-avatar">
+                <img src="assets/img/team/leader.jpg" alt="Nguyễn Tiên">
             </div>
-            <div class="event-info">
-                <h4>Ngày hội Câu Lạc Bộ 2024</h4>
-                <p class="event-location">📍 Sân vận động QNU</p>
-                <p class="event-time">⏰ 8:00 - 17:00</p>
-                <span class="event-badge">Miễn phí</span>
+            <h4>Nguyễn Tiên</h4>
+            <p class="team-role">Trưởng nhóm</p>
+            <p class="team-desc">Quản lý và điều phối dự án</p>
+            <div class="team-social">
+                <a href="#"><i class="ri-github-fill"></i></a>
+                <a href="#"><i class="ri-facebook-fill"></i></a>
+                <a href="#"><i class="ri-mail-fill"></i></a>
             </div>
         </div>
 
-        <div class="event-card">
-            <div class="event-date">
-                <span class="date-day">28</span>
-                <span class="date-month">Th11</span>
+        <div class="team-card">
+            <div class="team-avatar">
+                <img src="https://ui-avatars.com/api/?name=Tran+Thi+B&background=f59e0b&color=fff&size=150" alt="Member 2">
             </div>
-            <div class="event-info">
-                <h4>Workshop: Kỹ năng lãnh đạo CLB</h4>
-                <p class="event-location">📍 Hội trường A</p>
-                <p class="event-time">⏰ 14:00 - 16:30</p>
-                <span class="event-badge">Đăng ký</span>
-            </div>
-        </div>
-
-        <div class="event-card">
-            <div class="event-date">
-                <span class="date-day">02</span>
-                <span class="date-month">Th12</span>
-            </div>
-            <div class="event-info">
-                <h4>Chương trình Tình nguyện mùa đông</h4>
-                <p class="event-location">📍 Vùng cao Bình Định</p>
-                <p class="event-time">⏰ 3 ngày 2 đêm</p>
-                <span class="event-badge hot">Hot</span>
-            </div>
-        </div>
-    </div>
-</section>
-
-
-<!-- TIN TỨC & HOẠT ĐỘNG -->
-<section class="news-section">
-    <h2>Tin tức & Hoạt động</h2>
-    <p class="section-subtitle">Cập nhật những thông tin mới nhất từ các CLB</p>
-
-    <div class="news-grid">
-        <div class="news-card">
-            <img src="https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=400" alt="News">
-            <div class="news-content">
-                <span class="news-category">Thành tích</span>
-                <h4>CLB Bóng Rổ QNU giành giải Nhất giải Sinh viên toàn quốc</h4>
-                <p class="news-date">20/11/2024</p>
+            <h4>Hà Thị Minh Tâm</h4>
+            <p class="team-role">Thành viên</p>
+            <p class="team-desc">Phát triển giao diện người dùng</p>
+            <div class="team-social">
+                <a href="#"><i class="ri-github-fill"></i></a>
+                <a href="#"><i class="ri-facebook-fill"></i></a>
+                <a href="#"><i class="ri-mail-fill"></i></a>
             </div>
         </div>
 
-        <div class="news-card">
-            <img src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400" alt="News">
-            <div class="news-content">
-                <span class="news-category">Tình nguyện</span>
-                <h4>Chương trình "Mùa đông ấm" trao 500 phần quà cho học sinh vùng cao</h4>
-                <p class="news-date">18/11/2024</p>
+        <div class="team-card">
+            <div class="team-avatar">
+                <img src="https://ui-avatars.com/api/?name=Le+Van+C&background=48bb78&color=fff&size=150" alt="Member 3">
+            </div>
+            <h4>Trương Thị Thùy Trang</h4>
+            <p class="team-role">Thành viên</p>
+            <p class="team-desc">Phát triển backend và database</p>
+            <div class="team-social">
+                <a href="#"><i class="ri-github-fill"></i></a>
+                <a href="#"><i class="ri-facebook-fill"></i></a>
+                <a href="#"><i class="ri-mail-fill"></i></a>
             </div>
         </div>
 
-        <div class="news-card">
-            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=400" alt="News">
-            <div class="news-content">
-                <span class="news-category">Sự kiện</span>
-                <h4>Đêm nhạc "Sóng 20" thu hút hơn 2000 sinh viên tham dự</h4>
-                <p class="news-date">15/11/2024</p>
+        <div class="team-card">
+            <div class="team-avatar">
+                <img src="https://ui-avatars.com/api/?name=Pham+Thi+D&background=3b82f6&color=fff&size=150" alt="Member 4">
+            </div>
+            <h4>Trương Thị Uyên Trang</h4>
+            <p class="team-role">Thành viên</p>
+            <p class="team-desc">Thiết kế UI/UX và trải nghiệm</p>
+            <div class="team-social">
+                <a href="#"><i class="ri-github-fill"></i></a>
+                <a href="#"><i class="ri-facebook-fill"></i></a>
+                <a href="#"><i class="ri-mail-fill"></i></a>
             </div>
         </div>
     </div>

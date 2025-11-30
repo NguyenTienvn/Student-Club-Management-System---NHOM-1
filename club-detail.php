@@ -74,6 +74,9 @@ $stmt->bind_param("i", $club_id);
 $stmt->execute();
 $member_count = $stmt->get_result()->fetch_assoc()['total'];
 
+// Kiểm tra user có phải chủ nhiệm không
+$is_owner = ($club['chu_nhiem_id'] == $user_id);
+
 // Kiểm tra user đã tham gia chưa
 $sql = "SELECT * FROM club_members WHERE club_id = ? AND user_id = ?";
 $stmt = $conn->prepare($sql);
@@ -195,8 +198,8 @@ try {
 <div class="club-detail-container">
     <!-- Cover Image -->
     <div class="club-cover">
-        <?php if (!empty($club['logo_url'])): ?>
-            <img src="<?php echo htmlspecialchars($club['logo_url']); ?>" 
+        <?php if (!empty($club['banner_url'])): ?>
+            <img src="<?php echo htmlspecialchars($club['banner_url']); ?>" 
                  alt="Cover" onerror="this.style.display='none'">
         <?php endif; ?>
         <div class="cover-overlay"></div>
@@ -226,7 +229,11 @@ try {
                 </div>
             </div>
             <div class="club-actions">
-                <?php if ($is_member): ?>
+                <?php if ($is_owner): ?>
+                    <a href="Dashboard.php?id=<?php echo $club_id; ?>" class="btn-manage">
+                        <span>⚙️</span> Quản lý CLB
+                    </a>
+                <?php elseif ($is_member): ?>
                     <button class="btn-joined" disabled>
                         <span>✓</span> Đã tham gia
                     </button>
@@ -250,32 +257,7 @@ try {
                 </p>
             </div>
 
-            <!-- Stats Overview -->
-            <div class="section-card">
-                <h2>📊 Thống kê</h2>
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <div class="stat-icon">?</div>
-                        <div class="stat-value"><?php echo $member_count; ?></div>
-                        <div class="stat-label">THÀNH VIÊN</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-icon">?</div>
-                        <div class="stat-value"><?php echo $stats['total_events'] ?? 0; ?></div>
-                        <div class="stat-label">SỰ KIỆN</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-icon">🏆</div>
-                        <div class="stat-value"><?php echo $stats['total_achievements'] ?? 0; ?></div>
-                        <div class="stat-label">THÀNH TỰU</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-icon">⭐</div>
-                        <div class="stat-value"><?php echo number_format($stats['rating'] ?? 0, 1); ?></div>
-                        <div class="stat-label">ĐÁNH GIÁ</div>
-                    </div>
-                </div>
-            </div>
+
 
             <!-- Activities Section -->
             <div class="section-card">
@@ -400,51 +382,12 @@ try {
                 </div>
             </div>
 
-            <!-- Members Section -->
-            <div class="section-card">
-                <div class="section-header">
-                    <h2>👥 Thành viên (<?php echo $member_count; ?>)</h2>
-                    <a href="#" class="view-all">Xem tất cả →</a>
-                </div>
-                <div class="members-grid">
-                    <?php if ($members && $members->num_rows > 0): ?>
-                        <?php while ($member = $members->fetch_assoc()): ?>
-                            <div class="member-card">
-                                <img src="<?php echo !empty($member['avatar']) ? htmlspecialchars($member['avatar']) : 'assets/img/user.svg'; ?>" 
-                                     alt="Avatar" onerror="this.src='assets/img/user.svg'">
-                                <div class="member-info">
-                                    <h4><?php echo htmlspecialchars($member['ho_ten']); ?></h4>
-                                    <span class="member-role"><?php echo htmlspecialchars($member['vai_tro'] ?? 'Thành viên'); ?></span>
-                                </div>
-                            </div>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <p style="grid-column: 1/-1; text-align: center; color: #718096;">Chưa có thành viên nào</p>
-                    <?php endif; ?>
-                </div>
-            </div>
+
         </div>
 
         <!-- Sidebar -->
         <div class="content-sidebar">
-            <!-- Quick Actions -->
-            <div class="sidebar-card action-card">
-                <h3>⚡ Hành động nhanh</h3>
-                <div class="quick-actions">
-                    <button class="action-btn">
-                        <span>💬</span>
-                        <span>Nhắn tin</span>
-                    </button>
-                    <button class="action-btn">
-                        <span>🔔</span>
-                        <span>Theo dõi</span>
-                    </button>
-                    <button class="action-btn">
-                        <span>📤</span>
-                        <span>Chia sẻ</span>
-                    </button>
-                </div>
-            </div>
+
 
             <!-- Contact Card -->
             <div class="sidebar-card">

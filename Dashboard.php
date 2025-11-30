@@ -1,6 +1,8 @@
  <?php
 session_start();
 require 'site.php'; 
+require 'assets/database/connect.php';
+
 // === 1. Kiểm tra đăng nhập ===
 if (!isset($_SESSION['user_id'])) {
     $_SESSION['error'] = "Vui lòng đăng nhập để truy cập Dashboard!";
@@ -27,6 +29,32 @@ if ($club_id <= 0) {
     header("Location: myclub.php");
     exit;
 }
+
+// === 4. Lấy thông tin CLB từ database ===
+$club_info = null;
+$stmt = $conn->prepare("SELECT ten_clb, mo_ta, logo_url FROM clubs WHERE id = ?");
+$stmt->bind_param("i", $club_id);
+$stmt->execute();
+$result = $stmt->get_result();
+if ($result->num_rows > 0) {
+    $club_info = $result->fetch_assoc();
+}
+$stmt->close();
+
+// Lấy thông tin trang đại diện (slogan, banner, etc.)
+$club_page = null;
+$table_check = $conn->query("SHOW TABLES LIKE 'club_pages'");
+if ($table_check && $table_check->num_rows > 0) {
+    $stmt = $conn->prepare("SELECT slogan FROM club_pages WHERE club_id = ?");
+    $stmt->bind_param("i", $club_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $club_page = $result->fetch_assoc();
+    }
+    $stmt->close();
+}
+
 load_top();
 load_header();
 ?>
@@ -48,6 +76,26 @@ load_header();
         <p class="title-sub">Đây là nơi để bạn quản lý thông tin cho CLB của bạn hoặc các CLB mà bạn đã tham gia</p>
         <p class="title-sub">Đối với CLB mới, bạn cần hoàn thiện một số thông tin ở trang Dashboard để CLB có thể đi vào hoạt động</p>
     </div>
+
+    <?php if ($club_info): ?>
+    <div class="club-info-card">
+        <div class="club-logo">
+            <?php if (!empty($club_info['logo_url'])): ?>
+                <img src="<?= htmlspecialchars($club_info['logo_url']) ?>" alt="Logo CLB">
+            <?php else: ?>
+                <div class="no-logo">
+                    <i class="ri-image-line"></i>
+                    <p>Chưa có logo</p>
+                </div>
+            <?php endif; ?>
+        </div>
+        <div class="club-details">
+            <h3><?= htmlspecialchars($club_info['ten_clb'] ?? 'Chưa có tên CLB') ?></h3>
+            <p class="club-slogan"><?= htmlspecialchars($club_page['slogan'] ?? 'Chưa có slogan') ?></p>
+            <p class="club-desc"><?= htmlspecialchars($club_info['mo_ta'] ?? 'Chưa có mô tả') ?></p>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <div class="warn-box"> 
         <div class="alert-txt"> 
@@ -71,9 +119,8 @@ load_header();
 
         <div class="box member-add">
             <h3>Thêm thành viên</h3>
-            <p>Tạo phòng ban để quản lí thông tin thành viên</p>
+            <p>Thêm thành viên cho câu lạc bộ của bạn</p>
             <button onclick="location.href='add_TV_CLB.php?id=<?= $club_id ?>'" class="btn_addPage">Bắt đầu</button>
-
         </div>
     </div>
 
@@ -85,16 +132,29 @@ load_header();
                     <p>Tạo sự kiện để thu hút các nhà tài trợ</p>
                 </div> 
                 <button onclick="location.href='add_Su_kien.php?id=<?= $club_id ?>'" class="taosk">+Tạo sự kiện</button>
+                <button onclick="location.href='list_su_kien.php?id=<?= $club_id ?>'" 
+                    class="xemsk">
+                Xem sự kiện
+            </button>
             </div>
         </div>
       
         <div class="member-list">
-             <h2>Thành viên</h2>
-             <div class = "ds_tv"></div>
-                <!--<button onclick="location.href='themTV.php'" class="addTV">+</button> -->
-            <div class="member-item">
-            </div>
-        </div>
+    <h2>Tạo phòng ban</h2>
+    
+    <div class="empty-txt" style="text-align: center; padding: 30px; color: #2d3748;">
+        <p>Tạo phòng ban để tổ chức và phân công công việc</p>
+        <button onclick="location.href='taopb.php?id=<?= $club_id ?>'" class="taosk" style="margin-top: 10px;">
+            + Tạo phòng ban
+        </button>
+        <button onclick="location.href='view_members.php?id=<?= $club_id ?>'" 
+                class="view_members">
+            Xem danh sách
+        </button>
+    </div>
+</div>
+
+
     </div>
 
     <div class="task-group" style="margin-top: 30px;">

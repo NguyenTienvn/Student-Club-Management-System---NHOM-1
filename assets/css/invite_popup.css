@@ -1,0 +1,139 @@
+/* Overlay mờ */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.45);
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 2000;
+
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s ease;
+}
+
+/* Khi mở popup */
+.popup-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Khung popup */
+.popup-box {
+    width: 90%;
+    max-width: 480px;      /* GIẢM LẠI KHỎI 600px */
+    background: #fff;
+    border-radius: 12px;
+    padding: 28px 32px;
+    position: relative;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.25);
+
+    animation: fadeIn 0.25s ease-out;
+}
+
+/* Animation mở */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-14px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Nút đóng */
+.popup-close {
+    position: absolute;
+    right: 16px;
+    top: 14px;
+    font-size: 22px;
+    cursor: pointer;
+    opacity: 0.7;
+}
+.popup-close:hover {
+    opacity: 1;
+}
+
+/* Tiêu đề */
+.popup-box h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.popup-box p {
+    margin: 6px 0 18px;
+    color: #555;
+}
+
+/* Ô tìm kiếm */
+#searchUser {
+    width: 100%;
+    padding: 12px 14px 12px 16px;
+    border-radius: 8px;
+    border: 1.5px solid #dcdcdc;
+    outline: none;
+    font-size: 15px;
+}
+
+#searchUser:focus {
+    border-color: #4096ff;
+}
+
+/* Gợi ý tìm kiếm */
+.search-result {
+    margin-top: 8px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+    overflow-y: auto;
+    max-height: 160px;
+    display: none;
+}
+
+.search-item {
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 15px;
+}
+.search-item:hover {
+    background: #f6f6f6;
+}
+
+/* Ảnh thư */
+.invite-img {
+    width: 130px;
+    margin: 20px auto;
+    display: block;
+}
+
+/* Nút hành động */
+.popup-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}
+
+.cancel-btn {
+    padding: 10px 24px;
+    border: 1px solid #999;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+}
+
+.send-btn {
+    padding: 10px 24px;
+    border-radius: 6px;
+    border: none;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+}
+
+.send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

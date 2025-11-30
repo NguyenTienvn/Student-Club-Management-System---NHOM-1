@@ -6,11 +6,28 @@ load_header();
 
 // Lấy danh sách CLB từ database
 require('assets/database/connect.php');
-$sql = "SELECT c.*, COUNT(cm.id) as so_thanh_vien 
-        FROM clubs c 
-        LEFT JOIN club_members cm ON c.id = cm.club_id 
-        GROUP BY c.id 
-        ORDER BY c.id ASC";
+
+// Kiểm tra xem bảng club_pages có tồn tại không
+$table_check = $conn->query("SHOW TABLES LIKE 'club_pages'");
+$has_club_pages = ($table_check && $table_check->num_rows > 0);
+
+if ($has_club_pages) {
+    // Nếu có bảng club_pages, join để lấy banner
+    $sql = "SELECT c.*, cp.banner_url, COUNT(cm.id) as so_thanh_vien 
+            FROM clubs c 
+            LEFT JOIN club_pages cp ON c.id = cp.club_id
+            LEFT JOIN club_members cm ON c.id = cm.club_id 
+            GROUP BY c.id 
+            ORDER BY c.id ASC";
+} else {
+    // Nếu chưa có bảng club_pages, chỉ lấy từ clubs
+    $sql = "SELECT c.*, COUNT(cm.id) as so_thanh_vien 
+            FROM clubs c 
+            LEFT JOIN club_members cm ON c.id = cm.club_id 
+            GROUP BY c.id 
+            ORDER BY c.id ASC";
+}
+
 $result = $conn->query($sql);
 $clubs = [];
 if ($result && $result->num_rows > 0) {
@@ -110,11 +127,14 @@ $total_clubs = count($clubs);
     <?php 
     $badge_colors = ['green', 'yellow', 'blue', 'red', 'purple'];
     foreach ($clubs as $index => $club): 
-        $hidden_class = ($index >= 5) ? 'hidden-club' : '';
+        $hidden_class = ($index >= 6) ? 'hidden-club' : '';
         $badge_color = $badge_colors[$index % count($badge_colors)];
         $short_desc = mb_substr($club['mo_ta'], 0, 80) . '...';
     ?>
     <div class="club-card <?php echo $hidden_class; ?>">
+        <img class="club-img" src="<?php echo htmlspecialchars($club['banner_url'] ?? $club['logo_url'] ?? 'https://i.imgur.com/1Qd7UXJ.jpeg'); ?>" 
+             alt="<?php echo htmlspecialchars($club['ten_clb']); ?>"
+             onerror="this.src='https://i.imgur.com/1Qd7UXJ.jpeg'">
         <div class="club-info">
             <span class="badge <?php echo $badge_color; ?>"><?php echo htmlspecialchars($club['linh_vuc']); ?></span>
             <h2>
@@ -126,8 +146,6 @@ $total_clubs = count($clubs);
             <p class="member-count">👥 <?php echo $club['so_thanh_vien']; ?> thành viên</p>
             <a href="club-detail.php?id=<?php echo $club['id']; ?>" class="btn-detail">Chi tiết</a>
         </div>
-        <img class="club-img" src="<?php echo htmlspecialchars($club['logo_url'] ?? 'https://i.imgur.com/1Qd7UXJ.jpeg'); ?>" 
-             onerror="this.src='https://i.imgur.com/1Qd7UXJ.jpeg'">
     </div>
     <?php endforeach; ?>
 </div>

@@ -63,6 +63,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->bind_param("ssssii", $ten_clb, $mo_ta, $filePath, $linh_vuc, $so_thanh_vien, $chu_nhiem_id);
 
     if ($stmt->execute()) {
+        // Lấy ID của CLB vừa tạo
+        $club_id = $conn->insert_id;
+        
+        // Tự động thêm chủ nhiệm vào bảng club_members với vai trò 'chu_nhiem'
+        $stmt_member = $conn->prepare("
+            INSERT INTO club_members (club_id, user_id, vai_tro, joined_at, trang_thai)
+            VALUES (?, ?, 'chu_nhiem', NOW(), 'dang_hoat_dong')
+        ");
+        $stmt_member->bind_param("ii", $club_id, $chu_nhiem_id);
+        $stmt_member->execute();
+        $stmt_member->close();
+        
         echo "<script>alert('Tạo câu lạc bộ thành công!'); window.location.href='myclub.php';</script>";
     } else {
         echo "Lỗi: " . $stmt->error;

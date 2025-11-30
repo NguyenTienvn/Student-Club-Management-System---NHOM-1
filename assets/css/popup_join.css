@@ -1,0 +1,186 @@
+/* ---------------- POPUP OVERLAY ---------------- */
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Hiển thị modal */
+.modal.show {
+  display: flex;
+}
+
+/* ---------------- MODAL BOX ---------------- */
+.modal-content {
+  width: 480px;
+  max-width: 90vw;
+  background: #fff;
+  border-radius: 12px;
+  padding: 32px;
+  position: relative;
+  animation: popup 0.3s ease-out;
+  border: 1px solid #E5E7EB;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* animation popup */
+@keyframes popup {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.modal-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.modal-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.modal-subtitle {
+  color: #6B7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ---------------- FORM ---------------- */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: .15s;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* ---------------- BUTTON ---------------- */
+.btn-submit-full {
+  width: 100%;
+  padding: 12px;
+  background: #4F46E5;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .2s;
+  margin-top: 8px;
+}
+
+.btn-submit-full:hover {
+  background: #4338CA;
+}
+
+/* ---------------- CLOSE ICON ---------------- */
+.close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  font-size: 24px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #6B7280;
+  transition: .15s;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+}
+
+.close-btn:hover {
+  background: #F3F4F6;
+  color: #111827;
+}
+
+/* ---------------- MEMBER INFO ---------------- */
+.member-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #F9FAFB;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.member-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #4F46E5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.member-details h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.member-details p {
+  margin: 0;
+  font-size: 14px;
+  color: #6B7280;
+}
+
+/* Required field indicator */
+.required {
+  color: #EF4444;
+}
+
+/* Error message styling */
+.err-msg {
+  color: #dc2626;
+  font-size: 13px;
+  margin: 4px 0 8px;
+  display: block;
+}
+
+input.err, textarea.err {
+  border: 1px solid #dc2626 !important;
+}

@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Lấy tất cả các CLB
     let allClubs = Array.from(document.querySelectorAll(".club-card"));
-    let visibleCount = 5; // Số CLB hiển thị ban đầu
+    let visibleCount = 6; // Số CLB hiển thị ban đầu
 
     // Hiển thị CLB ban đầu
     function initDisplay() {
@@ -32,7 +32,7 @@ document.addEventListener("DOMContentLoaded", function () {
             
             let count = 0;
             hiddenClubs.forEach(function(club) {
-                if (count < 5) {
+                if (count < 6) {
                     club.classList.remove("hidden-club");
                     club.classList.add("show-club");
                     club.style.display = "flex";
