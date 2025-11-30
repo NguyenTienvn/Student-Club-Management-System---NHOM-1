@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $allowedExt = ['jpg', 'jpeg', 'png', 'gif'];
         if (!in_array($fileExt, $allowedExt)) {
-            die("Chỉ chấp nhận ảnh jpg, jpeg, png, gif");
+            die("Chỉ chấp nhận file ảnh: jpg, jpeg, png, gif");
         }
 
         $newFileName = uniqid('clb_') . "." . $fileExt;
