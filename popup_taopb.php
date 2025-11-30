@@ -1,17 +1,14 @@
 <?php
 session_start();
-include __DIR__ . '/assets/database/dbleaderclub.php';
+require_once('assets/database/connect.php');
 
 $user_id = $_SESSION['user_id'] ?? $_SESSION['id'] ?? 0;
-$stmt = $conn->prepare("SELECT id FROM clubs WHERE chu_nhiem_id = ? LIMIT 1");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$res = $stmt->get_result();
-$club = $res->fetch_assoc();
-$club_id = $club['id'] ?? 0;
+
+// Lấy club_id từ URL
+$club_id = isset($_GET['club_id']) ? (int)$_GET['club_id'] : 0;
 
 if (!$club_id) {
-    echo "<div class='modal show' id='createDeptModal'><div class='modal-content'><p>Bạn chưa có CLB để tạo phòng ban.</p><div style='text-align:right;margin-top:12px'><button onclick=\"window.location.href='createCLB.php'\" class='btn-submit'>Tạo CLB</button><button class='btn-cancel' onclick='closeModal()'>Đóng</button></div></div></div>";
+    echo "<p>Bạn chưa chọn CLB để tạo phòng ban.</p>";
     exit;
 }
 
@@ -20,6 +17,7 @@ $error = $_SESSION['popup_error'] ?? '';
 unset($_SESSION['popup_error']);
 unset($_SESSION['popup_success']);
 ?>
+
 
 <link rel="stylesheet" href="assets/css/popup_taopb.css">
 

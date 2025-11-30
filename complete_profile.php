@@ -2,9 +2,6 @@
 session_start();
 require('assets/database/connect.php');
 require('xulylogin.php');
-$page_type = 'login';
-require('site.php'); 
-load_top();
 
 if (!isset($_SESSION['temp_username'])) {
     header("Location: register.php"); exit();
@@ -53,38 +50,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hoàn thiện hồ sơ - LeaderClub</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #F6EDE2, #fbe2b7); margin:0; padding:50px 20px; min-height:100vh; }
-        .card { max-width: 600px; margin: 0 auto; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
-        .header { background: linear-gradient(135deg, #fbd8adff, #ffc35cff); color: white; padding: 40px 30px; text-align: center; }
-        .header h1 { margin: 0; font-size: 28px; }
-        .header p { opacity: 0.9; margin-top: 10px; }
-        .form-body { padding: 40px; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
-        .form-group { display: flex; flex-direction: column; }
-        label { font-weight: 600; margin-bottom: 8px; color: #333; }
-        input, select { padding: 14px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
-        .gender-group { display: flex; gap: 25px; margin-top: 10px; }
-        .gender-option { display: flex; align-items: center; gap: 8px; font-size: 15px; }
-        .btn { background: linear-gradient(to right, #f8dcb9, #f8bd55); color: white; padding: 16px; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; width: 100%; margin-top: 20px; }
-        .btn:hover { background:linear-gradient(to right, #f8dcb9, #f8bd55); }
-        .error-text { background: #feb2b2; color: #9b2c2c; padding: 15px; border-radius: 8px; margin-top: 10px;; margin-bottom: 20px; }
-        .success { background: #9ae6b4; color: #22543d; padding: 20px; border-radius: 10px; text-align: center; font-size: 18px; font-weight: bold; }
-        @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } }
-    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/complete_profile.css">
 </head>
 <body>
-    <div class="card">
+
+<div class="container">
+    <div class="profile-box">
         <div class="header">
             <h1>LeaderClub</h1>
             <p>Vui lòng hoàn thiện hồ sơ để bắt đầu trải nghiệm</p>
         </div>
-        
-        <div class="form-body">
-            <?php if ($success): ?>
-                <div class="success"><?php echo $success; ?><br><small>Đang chuyển về trang chủ...</small></div>
-            <?php else: ?>
-                <form method="POST">
+        <?php if ($success): ?>
+            <div class="success-message"><?php echo $success; ?><small>Đang chuyển về trang chủ...</small></div>
+        <?php else: ?>
+            <form method="POST">
                     <div class="form-row">
                         <div class="form-group">
                             <label>Họ và tên *</label>
@@ -142,10 +124,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                     </div>
 
-                    <button type="submit" class="btn">Hoàn tất đăng ký</button>
-                </form>
-            <?php endif; ?>
-        </div>
+                <button type="submit" class="submit-btn">Hoàn tất đăng ký</button>
+            </form>
+        <?php endif; ?>
     </div>
+</div>
 </body>
 </html>

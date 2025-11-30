@@ -1,74 +1,153 @@
-<?php
+<?php 
 session_start();
-include __DIR__ . '/assets/database/dbleaderclub.php'; 
+require_once('assets/database/connect.php');
 
-// kiểm tra login: dùng session user_id hoặc id
+
+// kiểm tra login
 if (!isset($_SESSION['user_id']) && !isset($_SESSION['id'])) {
     echo "<script>alert('Vui lòng đăng nhập'); window.location.href='login.php';</script>";
     exit;
 }
+
 $user_id = $_SESSION['user_id'] ?? $_SESSION['id'];
 $popup_error = $_SESSION['popup_error'] ?? '';
 $popup_success = $_SESSION['popup_success'] ?? '';
 $open_popup = !empty($popup_error) || isset($_GET['openPopup']);
 
-
-// lấy CLB mà user là chủ nhiệm (nếu có)
-// ưu tiên lấy theo chu_nhiem_id (file createCLB_xuli nên lưu chu_nhiem_id = creator)
-$stmt = $conn->prepare("SELECT id, ten_clb FROM clubs WHERE chu_nhiem_id = ? LIMIT 1");
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$res = $stmt->get_result();
-$club = $res->fetch_assoc();
-$club_id = $club['id'] ?? null;
-
-// nếu user không có CLB, redirect tới createCLB để tạo (hoặc gán club_id tạm)
-if (!$club_id) {
-    // chuyển sang trang tạo CLB (nếu muốn test nhanh, có thể tạm gán club_id = 1 ở đây)
-    echo "<script>alert('Bạn chưa có CLB — chuyển sang tạo CLB'); window.location.href='createCLB.php';</script>";
-    exit;
+// Lấy club_id: ưu tiên URL, sau đó session
+if (isset($_GET['id']) && is_numeric($_GET['id']) && $_GET['id'] > 0) {
+    $club_id = (int)$_GET['id'];
+    $_SESSION['club_id'] = $club_id;
+} elseif (isset($_SESSION['club_id']) && $_SESSION['club_id'] > 0) {
+    $club_id = (int)$_SESSION['club_id'];
+} else {
+    $club_id = null;
 }
 
-// Lấy thông tin thành viên: ưu tiên hiển thị creator (chu_nhiem) giống mockup
-$sql = "
-    SELECT u.ho_ten, u.username, u.email, u.so_dien_thoai, cm.vai_tro, pb.ten_phong_ban
+
+// Nếu club_id không có → báo chưa có CLB hoặc redirect tới tạo CLB
+if (!$club_id) {
+    $stmt = $conn->prepare("SELECT id FROM clubs WHERE chu_nhiem_id = ? ORDER BY id ASC LIMIT 1");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $club = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+    
+    if ($club) {
+        $club_id = $club['id'];
+    } else {
+        echo "<script>alert('Bạn chưa có CLB — chuyển sang tạo CLB'); window.location.href='createCLB.php';</script>";
+        exit;
+    }
+}
+
+// lấy ID chủ nhiệm của CLB
+$stmt_cn = $conn->prepare("SELECT chu_nhiem_id FROM clubs WHERE id = ?");
+$stmt_cn->bind_param("i", $club_id);
+$stmt_cn->execute();
+$chu_nhiem_id = $stmt_cn->get_result()->fetch_assoc()['chu_nhiem_id'] ?? 0;
+$stmt_cn->close();
+
+// Lấy danh sách thành viên của CLB
+$members = [];
+$sql_members = "
+    SELECT u.id AS user_id, u.ho_ten, u.username, u.email, u.so_dien_thoai,
+           pb.ten_phong_ban
     FROM club_members cm
     JOIN users u ON cm.user_id = u.id
     LEFT JOIN phong_ban pb ON cm.phong_ban_id = pb.id
     WHERE cm.club_id = ?
-    ORDER BY FIELD(cm.vai_tro, 'chu_nhiem','pho_chu_nhiem','truong_phong','thanh_vien'), u.ho_ten
 ";
-$stmt2 = $conn->prepare($sql);
+$stmt2 = $conn->prepare($sql_members);
 $stmt2->bind_param("i", $club_id);
 $stmt2->execute();
 $members = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt2->close();
 
-// load css
+// Lấy danh sách phòng ban
+$departments = [];
+$stmt3 = $conn->prepare("SELECT id, ten_phong_ban FROM phong_ban WHERE club_id = ? ORDER BY created_at ASC, id ASC");
+$stmt3->bind_param("i", $club_id);
+$stmt3->execute();
+$departments = $stmt3->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmt3->close();
 ?>
-<link rel="stylesheet" href="assets/css/taopb.css">
 
+<link rel="stylesheet" href="assets/css/taopb.css">
 <div class="header-strip">
-  <div class="title">Thành viên</div>
+  <div class="title">
+    <button class="btn-back" onclick="window.location.href='dashboard.php'">&#8592;</button>
+    Thành viên
+  </div>
   <div class="top-actions">
-    <button class="btn-outline">Danh sách chờ</button>
+    <button class="btn-outline" onclick="openPending()">Danh sách chờ</button>
     <button class="btn-outline active" onclick="openModal()">Tạo phòng ban</button>
-    <button class="btn-primary">+ Mời tham gia</button>
+    <button id="openInviteBtn" class="btn-primary">+ Mời tham gia</button>
   </div>
 </div>
 
+
 <div class="container">
+
   <div class="hero-card">
     <div class="hero-left">
-      <h3>Phòng ban</h3>
-      <p>Quản lý danh sách thông tin thành viên theo từng phòng ban</p>
-      <button class="create-btn" onclick="openModal()">Tạo phòng ban</button>
+        <h3>Phòng ban</h3>
+        <p>Quản lý danh sách thông tin thành viên theo từng phòng ban</p>
+
+        <div style="display:flex;align-items:center;gap:12px;margin-top:12px;">
+            <button class="create-btn" onclick="openModal()">Tạo phòng ban</button>
+
+            <!-- Nếu có phòng ban, hiển thị phòng ban đầu -->
+            <?php if (!empty($departments)): 
+                $first = $departments[0];
+                $cnt_stmt = $conn->prepare("SELECT COUNT(*) AS c FROM club_members WHERE phong_ban_id = ? AND club_id = ?");
+                $cnt_stmt->bind_param("ii", $first['id'], $club_id);
+                $cnt_stmt->execute();
+                $cnt = $cnt_stmt->get_result()->fetch_assoc()['c'] ?? 0;
+                $cnt_stmt->close();
+            ?>
+                <a class="dept-card inline-dept" href="manage_department.php?pb_id=<?= $first['id'] ?>">
+                    <div class="dept-icon-mini">
+                        <img src="assets/img/icon.jpg" alt="icon">
+                    </div>
+                    <div class="dept-info-inline">
+                        <div class="dept-name"><?= htmlspecialchars($first['ten_phong_ban']) ?></div>
+                        <div class="dept-count"><?= $cnt ?> thành viên</div>
+                    </div>
+                </a>
+            <?php endif; ?>
+        </div>
+
     </div>
+
     <div class="hero-right">
-      <!-- dùng ảnh đã upload (hệ thống sẽ transform đường dẫn /mnt/data -> url) -->
-      <img src="assets/images/hinh1.jpg" alt="illustration">
+        <img src="assets/img/hinh1.jpg" alt="illustration">
     </div>
   </div>
 
+  <!-- DANH SÁCH PHÒNG BAN -->
+  <div class="departments-list">
+      <?php if (empty($departments)): ?>
+          <div class="empty-dept">Chưa có phòng ban nào — hãy tạo mới!</div>
+      <?php else: ?>
+          <?php foreach ($departments as $index => $d): 
+                if ($index === 0) continue; // bỏ qua phòng ban đầu đã hiển thị
+                $cnt = $conn->query("SELECT COUNT(*) AS c FROM club_members WHERE phong_ban_id = ".(int)$d['id'])->fetch_assoc()['c'];
+          ?>
+              <a class="dept-card inline-dept" href="manage_department.php?pb_id=<?= $d['id'] ?>">
+                <div class="dept-icon-mini">
+                    <img src="assets/img/icon.jpg">
+                </div>
+                <div class="dept-info-inline">
+                    <div class="dept-name"><?= htmlspecialchars($d['ten_phong_ban']) ?></div>
+                    <div class="dept-count"><?= $cnt ?> thành viên</div>
+                </div>
+            </a>
+          <?php endforeach; ?>
+      <?php endif; ?>
+  </div>
+
+  <!-- BẢNG THÀNH VIÊN CLB -->
   <div class="table-card">
     <table class="members-table">
       <thead>
@@ -88,7 +167,7 @@ $members = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
             <tr>
               <td>
                 <div class="member-info">
-                  <div class="avatar"><?= !empty($m['ho_ten']) ? mb_substr($m['ho_ten'],0,1,'UTF-8') : '?' ?></div>
+                  <div class="avatar"><?= mb_substr($m['ho_ten'],0,1,'UTF-8') ?></div>
                   <div>
                     <div class="name"><?= htmlspecialchars($m['ho_ten']) ?></div>
                     <div class="subid"><?= htmlspecialchars($m['username']) ?></div>
@@ -99,8 +178,8 @@ $members = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
               <td><?= htmlspecialchars($m['email'] ?? '-') ?></td>
               <td><?= htmlspecialchars($m['ten_phong_ban'] ?? '-') ?></td>
               <td>
-                <span class="role <?= ($m['vai_tro'] ?? '') === 'chu_nhiem' ? 'president' : '' ?>">
-                  <?= ($m['vai_tro'] ?? '') === 'chu_nhiem' ? 'Chủ nhiệm' : 'Thành viên' ?>
+                <span class="role <?= ($m['user_id'] == $chu_nhiem_id ? 'president' : '') ?>">
+                  <?= $m['user_id'] == $chu_nhiem_id ? 'Chủ nhiệm' : 'Thành viên' ?>
                 </span>
               </td>
             </tr>
@@ -111,18 +190,22 @@ $members = $stmt2->get_result()->fetch_all(MYSQLI_ASSOC);
   </div>
 </div>
 
-<!-- Modal container (JS sẽ load popup_taopb.php hoặc hiển thị modal) -->
 <div id="modalContainer"></div>
 
 <script>
 function openModal() {
-    fetch('popup_taopb.php')
+    const clubId = <?= (int)$club_id ?>;
+    fetch('popup_taopb.php?club_id=' + clubId)
         .then(r => r.text())
         .then(html => {
-            document.getElementById('modalContainer').innerHTML = html;
-            document.getElementById('createDeptModal')?.classList.add('show');
+            const mc = document.getElementById('modalContainer');
+            mc.innerHTML = html;
+
+            const modal = document.getElementById('createDeptModal');
+            if (modal) modal.classList.add('show');
         });
 }
+
 
 function closeModal() {
     const modal = document.getElementById('createDeptModal');
@@ -134,24 +217,22 @@ function closeModal() {
     }
 }
 
-// TỰ ĐỘNG MỞ POPUP KHI CÓ LỖI HOẶC GET openPopup=1
 <?php if ($open_popup): ?>
-    window.addEventListener('DOMContentLoaded', () => {
-        setTimeout(openModal, 100); // Chờ DOM load xong
-    });
+window.addEventListener('DOMContentLoaded', () => setTimeout(openModal, 100));
 <?php endif; ?>
 
-// HIỆN THÔNG BÁO THÀNH CÔNG
 <?php if ($popup_success): ?>
-    window.addEventListener('DOMContentLoaded', () => {
-        const box = document.createElement('div');
-        box.className = 'msg-box success';
-        box.innerText = '<?= $popup_success ?>';
-        document.body.appendChild(box);
-        setTimeout(() => box.remove(), 3000);
-    });
+window.addEventListener('DOMContentLoaded', () => {
+    const box = document.createElement('div');
+    box.className = 'msg-box success';
+    box.innerText = '<?= $popup_success ?>';
+    document.body.appendChild(box);
+    setTimeout(() => box.remove(), 3000);
+});
 <?php endif; ?>
 </script>
 
-<script src="assets/js/taopb.js"></script>
-
+<div id="pendingContainer"></div>
+<script src="assets/js/popup_pending.js"></script>
+<div id="inviteContainer"></div>
+<script src="assets/js/invite_popup.js"></script>      

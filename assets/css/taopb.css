@@ -9,17 +9,8 @@
   --accent:#F9A826;
 }
 
-*{
-    box-sizing:border-box;
-    margin:0;
-    padding:0;
-    font-family:Inter, system-ui, Arial, sans-serif;
-}
-
-body{
-    background:var(--bg);
-    color:var(--primary);
-}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter, system-ui, Arial, sans-serif;}
+body{background:var(--bg);color:var(--primary);}
 
 /* Top header strip (title "Thành viên" + top buttons) */
 .header-strip{
@@ -85,23 +76,11 @@ body{
   flex:1 1 60%;
 }
 .hero-left h3{
-  font-size:20px;
-  font-weight:600;
-  margin-bottom:8px;
+  font-size:20px;font-weight:600;margin-bottom:8px;
 }
-.hero-left p{
-    color:var(--muted);
-    margin-bottom:18px;
-    line-height:1.5;
-}
+.hero-left p{color:var(--muted);margin-bottom:18px;line-height:1.5;}
 .hero-left .create-btn{
-  background:#111827;
-  color:#fff;
-  padding:10px 16px;
-  border-radius:8px;
-  border:none;
-  font-weight:700;
-  cursor:pointer;
+  background:#111827;color:#fff;padding:10px 16px;border-radius:8px;border:none;font-weight:700;cursor:pointer;
   box-shadow: 0 6px 14px rgba(17,24,39,0.08);
 }
 
@@ -110,11 +89,7 @@ body{
   width:360px;
   text-align:right;
 }
-.hero-right img{
-    max-width:340px;
-    height:auto;
-    display:inline-block;
-}
+.hero-right img{max-width:340px;height:auto;display:inline-block;}
 
 /* Table card */
 .table-card{
@@ -125,88 +100,78 @@ body{
   overflow:hidden;
   box-shadow: 0 1px 2px rgba(0,0,0,0.03);
 }
-.members-table{
-    width:100%;
-    border-collapse:collapse;
-}
+.members-table{width:100%;border-collapse:collapse;}
 .members-table thead th{
-  padding:16px 20px;
-  background:#F9FAFB;
-  text-align:left;
-  font-weight:600;
-  color:#374151;
-  font-size:14px;
-  border-bottom:1px solid #F3F4F6;
+  padding:16px 20px;background:#F9FAFB;text-align:left;font-weight:600;color:#374151;font-size:14px;border-bottom:1px solid #F3F4F6;
 }
 .members-table td{
-  padding:18px 20px;
-  border-top:1px solid #F3F4F6;
-  vertical-align:middle;
+  padding:18px 20px;border-top:1px solid #F3F4F6;vertical-align:middle;
 }
 
 /* member row */
-.member-info{display:flex;
-    align-items:center;
-    gap:12px;
-}
-
+.member-info{display:flex;align-items:center;gap:12px;}
 .avatar{
-  width:44px;
-  height:44px;
-  border-radius:50%;
-  background:#E5E7EB;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  color:#6B7280;
-  font-weight:700;
-  font-size:16px;
+  width:44px;height:44px;border-radius:50%;background:#E5E7EB;display:flex;align-items:center;justify-content:center;color:#6B7280;font-weight:700;font-size:16px;
 }
-
-.name{
-    font-weight:600;
-    color:#111827;
-}
-
-.subid{
-    font-size:13px;
-    color:var(--muted);
-}
+.name{font-weight:600;color:#111827;}
+.subid{font-size:13px;color:var(--muted);}
 
 /* Role tag */
-.role{
-    display:inline-block;
-    padding:6px 12px;
-    border-radius:6px;
-    background:#FFFBEB;
-    color:#D97706;
-    font-weight:600;
-    font-size:13px;
-}
-
-.role.president{
-    background:#EFF6FF;
-    color:#2563EB;
-}
+.role{display:inline-block;padding:6px 12px;border-radius:6px;background:#FFFBEB;color:#D97706;font-weight:600;font-size:13px;}
+.role.president{background:#EFF6FF;color:#2563EB;}
 
 /* empty state */
-.empty-row{
-    text-align:center;
-    padding:44px;
-    color:#9CA3AF;
-}
+.empty-row{text-align:center;padding:44px;color:#9CA3AF;}
 
 /* Responsive */
 @media (max-width:900px){
-  .hero-card{
-    flex-direction:column;
-    align-items:flex-start;
-    }
-  .hero-right{
-    text-align:left;
-    width:100%;
-    }
-  .container{
-    padding:0 12px;
-    }
+  .hero-card{flex-direction:column;align-items:flex-start;}
+  .hero-right{text-align:left;width:100%;}
+  .container{padding:0 12px;}
+}
+/* nhỏ gọn inline dept (hiện phòng ban đầu cạnh nút tạo) */
+.inline-dept{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  text-decoration:none;
+  padding:10px 14px;
+  border-radius:8px;
+  border:1px solid #E5E7EB;
+  background:#fff;
+  color:#111827;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+}
+.inline-dept .dept-icon-mini img{ width:36px; height:36px; object-fit:cover; border-radius:6px; }
+.inline-dept .dept-info-inline { text-align:left; }
+.inline-dept .dept-name { font-weight:600; }
+.inline-dept .dept-count { color:#6B7280; font-size:13px; }
+
+/* đảm bảo hero-card vẫn giữ layout */
+.hero-card{ align-items:center; }
+.departments-list {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+.btn-back {
+    background-color: #f3f4f6; /* nền sáng */
+    border: 1px solid #d1d5db; /* viền nhẹ */
+    border-radius: 6px;
+    font-size: 20px; /* to hơn */
+    font-weight: bold;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    transition: all 0.2s ease;
+}
+
+.btn-back:hover {
+    background-color: #EF4444; /* đỏ khi hover */
+    color: #fff;
+    border-color: #EF4444;
 }
