@@ -73,7 +73,6 @@ load_header();
             <h3>Thêm thành viên</h3>
             <p>Thêm thành viên cho câu lạc bộ của bạn</p>
             <button onclick="location.href='add_TV_CLB.php?id=<?= $club_id ?>'" class="btn_addPage">Bắt đầu</button>
-
         </div>
     </div>
 
@@ -112,33 +111,17 @@ load_header();
     $stmt->bind_param("i", $club_id);
     $stmt->execute();
     $result = $stmt->get_result();
-
-    if ($result->num_rows > 0):
-    ?>
-        <div class="ds_tv">
-            <?php while ($member = $result->fetch_assoc()): 
-                // Xử lý avatar mặc định nếu không có
-                $avatar = !empty($member['avatar']) ? 'uploads/avatars/' . $member['avatar'] : 'assets/images/default-avatar.png';
-            ?>
-                <div class="member-item">
-                    <img src="<?= htmlspecialchars($avatar) ?>" alt="Avatar" class="member-avatar">
-                    <div class="member-info">
-                        <h4><?= htmlspecialchars($member['ho_ten']) ?></h4>
-                        <p class="member-role"><?= htmlspecialchars($member['vai_tro']) ?></p>
-                        <p class="member-email"><?= htmlspecialchars($member['email']) ?></p>
-                    </div>
-                </div>
-            <?php endwhile; ?>
-        </div>
-
-    <?php else: ?>
+ ?>
         <div class="empty-txt" style="text-align: center; padding: 30px; color: #888;">
-            <p>Chưa có thành viên nào đang hoạt động</p>
+            <p>Nếu chưa có thành viên nào đang hoạt động</p>
             <button onclick="location.href='add_TV_CLB.php?id=<?= $club_id ?>'" class="taosk" style="margin-top: 10px;">
                 + 
             </button>
-        </div>
-    <?php endif; ?>
+            <button onclick="location.href='view_members.php?id=<?= $club_id ?>'" 
+                    class="view_members">
+                Xem danh sách
+            </button>
+        </div> 
 
     <?php $stmt->close(); ?>
 </div>

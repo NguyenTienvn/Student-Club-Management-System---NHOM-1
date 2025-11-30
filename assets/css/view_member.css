@@ -1,0 +1,147 @@
+h1{
+    color: #7238a1;
+    text-align: center; /* căn giữa chữ */
+    font-size: 45px; /* chữ to hơn, có thể chỉnh theo ý bạn */
+    padding: 0 15px; 
+    margin-top: 10vh; /* cách lề trên 30px, chỉnh tùy ý */
+    font-weight: bold; /* chữ đậm */  
+}
+/* Layout tổng */
+.members-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 24px;
+    margin-top: 30px; 
+    padding: 80px 10px;
+}
+
+/* Card thành viên */
+.member-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px 16px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: all 0.2s ease;
+    position: relative;
+    border: 1px solid #e2e8f0;
+}
+
+.member-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 12px 20px rgba(0,0,0,0.12);
+}
+
+/* Avatar */
+.member-card img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #ffffff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-bottom: 14px;
+}
+
+/* Thông tin thành viên */
+.member-info {
+    text-align: center;
+    width: 100%;
+}
+
+.member-info h4 {
+    font-size: 17px;
+    font-weight: 600;
+    color: #1a202c;
+    margin: 0 0 10px 0;
+    line-height: 1.3;
+}
+
+/* Vai trò – đẹp hơn theo từng loại */
+.member-role {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    text-transform: capitalize;
+}
+
+/* Màu riêng cho từng vai trò */
+.member-role:contains("Chủ nhiệm")      { background: #9f7aea; color: white; }     /* tím */
+.member-role:contains("Phó chủ nhiệm") { background: #3182ce; color: white; }     /* xanh dương */
+.member-role:contains("Thành viên")    { background: #38a169; color: white; }     /* xanh lá */
+
+/* Nếu trình duyệt không hỗ trợ :contains (tất cả đều không hỗ trợ), dùng class thay thế */
+.role-chu-nhiem     { background: #9f7aea !important; color: white !important; }
+.role-pho-chu-nhiem { background: #3182ce !important; color: white !important; }
+.role-thanh-vien    { background: #38a169 !important; color: white !important; }
+
+/* Trạng thái có màu */
+.member-status {
+    font-size: 13.5px;
+    font-weight: 500;
+}
+
+.status {
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.status.approved  { background: #c6f6d5; color: #22543d; } /* xanh lá nhạt */
+.status.pending   { background: #fef5cd; color: #7b5e0b; } /* vàng nhạt */
+.status.rejected  { background: #fed7d7; color: #742a2a; } /* đỏ nhạt */
+
+/* Nút Xóa */
+.delete-btn {
+    margin-top: 14px;
+    background: #e53e3e;
+    color: white;
+    border: none;
+    padding: 9px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.delete-btn:hover {
+    background: #c53030;
+    transform: scale(1.05);
+}
+
+/* Khi chưa có thành viên */
+.members-grid p {
+    font-size: 16px;
+    color: #718096;
+    padding: 50px 20px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .members-grid {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .members-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    
+    .member-card img {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .member-info h4 {
+        font-size: 15px;
+    }
+}

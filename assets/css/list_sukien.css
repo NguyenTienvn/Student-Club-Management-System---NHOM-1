@@ -27,6 +27,7 @@ body {
 .header-title h1 {
     font-size: 28px;
     color: #f5576c;
+    margin-top: 100px;
     margin-bottom: 8px;
     font-weight: 600;
 }

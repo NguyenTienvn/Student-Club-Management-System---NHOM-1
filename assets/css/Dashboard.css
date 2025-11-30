@@ -254,7 +254,7 @@
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(245, 87, 108, 0.4);
 }
-.xemsk {
+.xemsk, .view_members{
     font-size: 17px;
     margin-top: 25px;
     padding: 14px 32px;
@@ -269,6 +269,13 @@
 }
 
 .xemsk:hover {
+    transform: translateY(-3px);
+    background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 8px 25px rgba(245, 87, 108, 0.35);
+}
+.view_members:hover {
     transform: translateY(-3px);
     background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
     color: #fff;

@@ -1,6 +1,9 @@
 <?php 
-
+require 'site.php'; 
+load_top();
+load_header();
 require_once(__DIR__ . "/assets/database/connect.php");
+
 $club_id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($club_id <= 0) {
     die("ID câu lạc bộ không hợp lệ");
@@ -14,7 +17,7 @@ $stmt->execute();
 $club = $stmt->get_result()->fetch_assoc();
 $ten_clb = $club['ten_clb'] ?? 'Câu lạc bộ';
 
-// Truy vấn danh sách sự kiện - ĐÃ CẬP NHẬT ĐẦY ĐỦ CÁC TRƯỜNG
+// Lấy danh sách sự kiện
 $sql = "SELECT 
             id,
             ten_su_kien,
@@ -36,7 +39,8 @@ $stmt->bind_param("i", $club_id);
 $stmt->execute();
 $result = $stmt->get_result();
 ?>  
-    <link rel="stylesheet" href="assets/css/list_sukien.css?v=<?= time() ?>">
+
+<link rel="stylesheet" href="assets/css/list_sukien.css?v=<?= time() ?>">
 
 <div class="container">
     <div class="header-title">
@@ -47,21 +51,26 @@ $result = $stmt->get_result();
     <div class="events-grid">
         <?php while ($event = $result->fetch_assoc()): ?>
             <div class="event-card <?= $event['trang_thai'] == 'da_ket_thuc' ? 'ended' : '' ?>">
-                <?php if (!empty($event['anh_bia'])): ?>
-                    <div class="event-img">
-                        <img src="uploads/events/<?= htmlspecialchars($event['anh_bia']) ?>" 
-                             alt="<?= htmlspecialchars($event['ten_su_kien']) ?>">
-                    </div>
-                <?php else: ?>
-                    <div class="event-img placeholder">
-                        <span>Chưa có ảnh bìa</span>
-                    </div>
-                <?php endif; ?>
+
+                <!-- Ảnh bìa -->
+                <div class="event-img">
+                    <?php 
+                    if (!empty($event['anh_bia'])) {
+                        $img_path = 'anh_bia_sk/' . basename($event['anh_bia']);
+
+                    ?>
+                        <img src="<?= htmlspecialchars($img_path) ?>?v=<?= time() ?>"
+                             alt="<?= htmlspecialchars($event['ten_su_kien']) ?>"
+                             onerror="this.style.display='none'">
+                    <?php } else { ?>
+                        <div class="placeholder"><span>Chưa có ảnh bìa</span></div>
+                    <?php } ?>
+                </div>
 
                 <div class="event-info">
                     <h3><?= htmlspecialchars($event['ten_su_kien']) ?></h3>
 
-                    <!-- Hiển thị trạng thái -->
+                    <!-- Trạng thái -->
                     <?php if ($event['trang_thai'] == 'dang_dien_ra'): ?>
                         <span class="status ongoing">Đang diễn ra</span>
                     <?php elseif ($event['trang_thai'] == 'sap_dien_ra'): ?>
@@ -78,7 +87,9 @@ $result = $stmt->get_result();
                             <?= $event['thoi_gian_ket_thuc'] ? ' → ' . date('d/m/Y H:i', strtotime($event['thoi_gian_ket_thuc'])) : '' ?>
                         </p>
                         <p><strong>Địa điểm:</strong> <?= htmlspecialchars($event['dia_diem'] ?: 'Chưa cập nhật') ?></p>
-                        <p><strong>Số lượng:</strong> <?= $event['so_luong_toi_da'] ? $event['so_luong_toi_da'] . ' người' : 'Không giới hạn' ?></p>
+                        <p><strong>Số lượng:</strong> 
+                            <?= $event['so_luong_toi_da'] ? $event['so_luong_toi_da'] . ' người' : 'Không giới hạn' ?>
+                        </p>
                         <?php if ($event['han_dang_ky']): ?>
                             <p><strong>Hạn đăng ký:</strong> <?= date('d/m/Y H:i', strtotime($event['han_dang_ky'])) ?></p>
                         <?php endif; ?>
@@ -106,4 +117,5 @@ $result = $stmt->get_result();
 
 </body>
 </html>
+
 <?php $conn->close(); ?>
