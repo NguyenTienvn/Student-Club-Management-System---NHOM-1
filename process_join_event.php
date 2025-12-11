@@ -5,6 +5,16 @@ require_once __DIR__ . "/assets/database/connect.php";
 require_once __DIR__ . "/includes/constants.php";
 require_once __DIR__ . "/includes/functions.php";
 
+// CSRF protection for state-changing action
+$csrf_token = $_POST[CSRF_TOKEN_NAME] ?? '';
+if (!verify_csrf_token($csrf_token)) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Phiên không hợp lệ, vui lòng tải lại trang.'
+    ]);
+    exit;
+}
+
 // Kiểm tra đăng nhập
 if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
     echo json_encode([
@@ -17,6 +27,15 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $event_id = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
 
+// Rate limit to avoid spam
+if (!check_rate_limit('join_event_' . $user_id, 5, 60)) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Bạn thao tác quá nhanh, vui lòng thử lại sau.'
+    ]);
+    exit;
+}
+
 if ($event_id <= 0) {
     echo json_encode([
         'success' => false,
@@ -26,13 +45,16 @@ if ($event_id <= 0) {
 }
 
 // Kiểm tra sự kiện có tồn tại không
-$sql_check = "SELECT * FROM events WHERE id = ?";
+$sql_check = "SELECT * FROM events WHERE id = ? FOR UPDATE";
+$conn->begin_transaction();
 $stmt = $conn->prepare($sql_check);
 $stmt->bind_param("i", $event_id);
 $stmt->execute();
 $event = $stmt->get_result()->fetch_assoc();
+$stmt->close();
 
 if (!$event) {
+    $conn->rollback();
     echo json_encode([
         'success' => false,
         'message' => 'Sự kiện không tồn tại!'
@@ -41,16 +63,18 @@ if (!$event) {
 }
 
 // Kiểm tra trạng thái sự kiện
-if ($event['trang_thai'] === 'da_ket_thuc') {
+if (in_array($event['trang_thai'], ['da_ket_thuc', 'da_huy'], true)) {
+    $conn->rollback();
     echo json_encode([
         'success' => false,
-        'message' => 'Sự kiện đã kết thúc!'
+        'message' => 'Sự kiện không còn mở để đăng ký!'
     ]);
     exit;
 }
 
 // Kiểm tra hạn đăng ký
 if (!empty($event['han_dang_ky']) && strtotime($event['han_dang_ky']) < time()) {
+    $conn->rollback();
     echo json_encode([
         'success' => false,
         'message' => 'Đã hết hạn đăng ký sự kiện!'
@@ -67,6 +91,7 @@ $already_registered = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
 if ($already_registered) {
+    $conn->rollback();
     echo json_encode([
         'success' => false,
         'message' => 'Bạn đã đăng ký sự kiện này rồi!'
@@ -95,6 +120,7 @@ if (!$is_member) {
     $stmt->close();
     
     if (!$is_owner) {
+        $conn->rollback();
         echo json_encode([
             'success' => false,
             'message' => 'Chỉ thành viên của CLB mới được đăng ký tham gia sự kiện này!'
@@ -111,7 +137,10 @@ $stmt->execute();
 $count = $stmt->get_result()->fetch_assoc()['total'];
 $stmt->close();
 
-if ($count >= $event['so_luong_toi_da']) {
+// Nếu không thiết lập giới hạn (NULL/0), coi như không giới hạn
+$max_slots = (int)($event['so_luong_toi_da'] ?? 0);
+if ($max_slots > 0 && $count >= $max_slots) {
+    $conn->rollback();
     echo json_encode([
         'success' => false,
         'message' => 'Sự kiện đã đủ số lượng người tham gia!'
@@ -125,6 +154,7 @@ $stmt = $conn->prepare($sql_insert);
 $stmt->bind_param("ii", $event_id, $user_id);
 
 if ($stmt->execute()) {
+    $conn->commit();
     // Lấy thông tin user đăng ký và sự kiện để tạo thông báo
     $user_sql = "SELECT ho_ten FROM users WHERE id = ?";
     $user_stmt = $conn->prepare($user_sql);
@@ -187,6 +217,7 @@ if ($stmt->execute()) {
         'message' => 'Đăng ký tham gia sự kiện thành công!'
     ]);
 } else {
+    $conn->rollback();
     echo json_encode([
         'success' => false,
         'message' => 'Có lỗi xảy ra: ' . $stmt->error

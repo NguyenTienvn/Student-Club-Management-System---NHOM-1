@@ -48,7 +48,9 @@ body {
     align-items: center;
     padding: 20px;
     position: relative;
-    overflow: hidden;
+    /* Cho phép cuộn dọc khi có thông báo lỗi dài để không che mất nút */
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 
 body::before {

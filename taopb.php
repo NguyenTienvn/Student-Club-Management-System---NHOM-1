@@ -59,7 +59,7 @@ $stmt_cn->close();
 // Lấy danh sách thành viên của CLB (chỉ lấy thành viên đang hoạt động)
 $members = [];
 $sql_members = "
-    SELECT u.id AS user_id, u.ho_ten, u.username, u.email, u.so_dien_thoai,
+    SELECT u.id AS user_id, u.ho_ten, u.username, u.email, u.so_dien_thoai, u.avatar,
            pb.ten_phong_ban, cm.vai_tro
     FROM club_members cm
     JOIN users u ON cm.user_id = u.id
@@ -102,9 +102,7 @@ load_header();
     Thành viên
   </div>
   <div class="top-actions">
-    <button class="btn-outline" onclick="openPending()">Danh sách chờ</button>
     <button class="btn-outline active" onclick="openModal()">Tạo phòng ban</button>
-    <button id="openInviteBtn" class="btn-primary">+ Mời tham gia</button>
   </div>
 </div>
 
@@ -133,7 +131,7 @@ load_header();
                 $cnt = $cnt_stmt->get_result()->fetch_assoc()['c'] ?? 0;
                 $cnt_stmt->close();
           ?>
-              <a class="dept-card inline-dept" href="manage_department.php?pb_id=<?= $d['id'] ?>">
+              <div class="dept-card inline-dept">
                 <div class="dept-icon-mini">
                     <img src="assets/img/logoQuyNhon-icon.jpg" alt="icon">
                 </div>
@@ -141,7 +139,7 @@ load_header();
                     <div class="dept-name"><?= htmlspecialchars($d['ten_phong_ban']) ?></div>
                     <div class="dept-count"><?= $cnt ?> thành viên</div>
                 </div>
-            </a>
+            </div>
           <?php endforeach; ?>
       <?php endif; ?>
   </div>
@@ -163,12 +161,20 @@ load_header();
           <tr><td colspan="5" class="empty-row">Chưa có thành viên nào trong CLB</td></tr>
         <?php else: ?>
           <?php foreach ($members as $m): ?>
+            <?php
+              $avatar_path = $m['avatar'] ?? '';
+              if (!empty($avatar_path) && file_exists($avatar_path)) {
+                $anh_avatar = htmlspecialchars($avatar_path) . '?v=' . filemtime($avatar_path);
+              } else {
+                $anh_avatar = "assets/img/avatars/user.svg";
+              }
+            ?>
             <tr>
               <td>
-                <div class="member-info">
-                  <div class="avatar"><?= mb_substr($m['ho_ten'],0,1,'UTF-8') ?></div>
+                <div class="member-cell">
+                  <img src="<?= $anh_avatar ?>" alt="<?= htmlspecialchars($m['ho_ten']) ?>" class="member-avatar-small">
                   <div>
-                    <div class="name"><?= htmlspecialchars($m['ho_ten']) ?></div>
+                    <div class="member-name"><?= htmlspecialchars($m['ho_ten']) ?></div>
                     <div class="subid"><?= htmlspecialchars($m['username']) ?></div>
                   </div>
                 </div>
@@ -279,11 +285,6 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 <?php endif; ?>
 </script>
-
-<div id="pendingContainer"></div>
-<script src="assets/js/popup_pending.js"></script>
-<div id="inviteContainer"></div>
-<script src="assets/js/invite_popup.js"></script>
 
 <?php
 load_footer();

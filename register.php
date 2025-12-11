@@ -26,6 +26,10 @@ $error_message = '';
 
 // Xử lý đăng ký
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Rate limit đăng ký để tránh spam
+    if (!check_rate_limit('register_attempt', 5, 600)) {
+        $error_message = 'Bạn đã thử quá nhiều lần. Vui lòng thử lại sau vài phút.';
+    } else {
     $username = sanitize_input(trim($_POST['username']));
     $password = $_POST['password'];
     $confirmPassword = $_POST['confirmPassword'];
@@ -53,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $error_message = $result;
         }
     }
+}
 }
 ?>
 
@@ -90,18 +95,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <?php endif; ?>
 
         <?php if (!$success_message): ?>
-            <form class="register-form" method="POST" action="">
+            <form class="register-form" method="POST" action="" id="registerForm" novalidate>
+                <div id="clientError" class="error-message" style="display:none"></div>
                 <div class="input-group">
                     <label for="username">Tên đăng nhập</label>
                     <input type="text" id="username" name="username" placeholder="Nhập tên đăng nhập" 
-                           value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>" required>
-                    <div class="input-note">Chỉ dùng chữ và số</div>
+                           value="<?php echo isset($_POST['username']) ? htmlspecialchars($_POST['username']) : ''; ?>"
+                           pattern="[A-Za-z0-9]+"
+                           minlength="4"
+                           maxlength="30"
+                           inputmode="latin"
+                           autocomplete="username"
+                           title="4-30 ký tự, chỉ dùng chữ và số"
+                           required>
+                    <div class="input-note">Chỉ dùng chữ và số (4-30 ký tự)</div>
                 </div>
                 
                 <div class="input-group">
                     <label for="password">Mật khẩu</label>
                     <div class="password-wrapper">
-                        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" autocomplete="new-password" required>
+                        <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" autocomplete="new-password"
+                               minlength="<?php echo PASSWORD_MIN_LENGTH; ?>" maxlength="64" required>
                         <img src="assets/img/eye-off.svg.png" class="eye-icon" id="eyeIcon1" onclick="togglePassword('password', 'eyeIcon1')">
                     </div>
                     <div class="input-note">Ít nhất 8 ký tự</div>
@@ -110,9 +124,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="input-group">
                     <label for="confirmPassword">Nhập lại mật khẩu</label>
                     <div class="password-wrapper">
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" autocomplete="new-password" required>
+                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Nhập lại mật khẩu" autocomplete="new-password"
+                               minlength="<?php echo PASSWORD_MIN_LENGTH; ?>" maxlength="64" required>
                         <img src="assets/img/eye-off.svg.png" class="eye-icon" id="eyeIcon2" onclick="togglePassword('confirmPassword', 'eyeIcon2')">
                     </div>
+                    <div id="confirmError" class="error-message" style="display:none"></div>
                 </div>
                 
                 <div class="divider"></div>
@@ -173,6 +189,56 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (confirmPasswordInput) {
             confirmPasswordInput.addEventListener('input', function() {
                 toggleEyeIconVisibility('confirmPassword', 'eyeIcon2');
+            });
+        }
+
+        // Client-side form validation
+        const form = document.getElementById('registerForm');
+        const clientError = document.getElementById('clientError');
+        const confirmError = document.getElementById('confirmError');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                clientError.style.display = 'none';
+                clientError.textContent = '';
+                if (confirmError) {
+                    confirmError.style.display = 'none';
+                    confirmError.textContent = '';
+                }
+
+                const username = (document.getElementById('username')?.value || '').trim();
+                const pw = passwordInput?.value || '';
+                const cpw = confirmPasswordInput?.value || '';
+                const minLen = parseInt(<?php echo PASSWORD_MIN_LENGTH; ?>, 10) || 8;
+                const usernameRegex = /^[A-Za-z0-9]+$/;
+
+                if (!username) {
+                    e.preventDefault();
+                    clientError.textContent = 'Vui lòng nhập tên đăng nhập.';
+                } else if (!pw) {
+                    e.preventDefault();
+                    clientError.textContent = 'Vui lòng nhập mật khẩu.';
+                } else if (!cpw) {
+                    e.preventDefault();
+                    clientError.textContent = 'Vui lòng nhập lại mật khẩu.';
+                } else if (!usernameRegex.test(username) || username.length < 4 || username.length > 30) {
+                    e.preventDefault();
+                    clientError.textContent = 'Tên đăng nhập phải 4-30 ký tự, chỉ gồm chữ và số.';
+                } else if (pw.length < minLen) {
+                    e.preventDefault();
+                    clientError.textContent = `Mật khẩu phải có ít nhất ${minLen} ký tự.`;
+                } else if (pw !== cpw) {
+                    e.preventDefault();
+                    clientError.textContent = 'Mật khẩu nhập lại không khớp.';
+                    if (confirmError) {
+                        confirmError.textContent = 'Mật khẩu nhập lại không khớp.';
+                        confirmError.style.display = 'block';
+                    }
+                }
+
+                if (clientError.textContent) {
+                    clientError.style.display = 'block';
+                    clientError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             });
         }
     });

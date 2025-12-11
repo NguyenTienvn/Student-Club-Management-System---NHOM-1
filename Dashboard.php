@@ -74,7 +74,6 @@ load_header();
     <div class="dash-intro">
         <h2 class="title-main">👋Chào mừng đến trang Quản lý Câu Lạc Bộ</h2>
         <p class="title-sub">Đây là nơi để bạn quản lý thông tin cho CLB của bạn hoặc các CLB mà bạn đã tham gia</p>
-        <p class="title-sub">Đối với CLB mới, bạn cần hoàn thiện một số thông tin ở trang Dashboard để CLB có thể đi vào hoạt động</p>
     </div>
 
     <?php if ($club_info): ?>
@@ -103,12 +102,6 @@ load_header();
         </div>
     </div>
     <?php endif; ?>
-
-    <div class="warn-box"> 
-        <div class="alert-txt"> 
-            <p><span>⚠️</span>Hoàn thiện các bước dưới đây để Câu Lạc Bộ của bạn đi vào hoạt động</p>
-        </div>
-    </div>
 
     <div class="task-group">
         <div class="box info-add">

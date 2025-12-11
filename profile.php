@@ -94,12 +94,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['avatar'])) {
     <?php endif; ?>
     
     <div class="profile-header">
+        <?php
+            $ho_ten_safe   = $user['ho_ten']   ?? '';
+            $username_safe = $user['username'] ?? '';
+            $avatar_path   = $user['avatar']   ?? '';
+            $avatar_letter = strtoupper(substr($ho_ten_safe ?: 'U', 0, 1));
+        ?>
         <div class="avatar-upload-wrapper">
-            <?php if (!empty($user['avatar']) && file_exists($user['avatar'])): ?>
-                <img src="<?php echo htmlspecialchars($user['avatar']); ?>" alt="Avatar" class="profile-avatar-large">
+            <?php if (!empty($avatar_path) && file_exists($avatar_path)): ?>
+                <img src="<?php echo htmlspecialchars($avatar_path); ?>" alt="Avatar" class="profile-avatar-large">
             <?php else: ?>
                 <div class="profile-avatar-large">
-                    <?php echo strtoupper(substr($user['ho_ten'], 0, 1)); ?>
+                    <?php echo $avatar_letter; ?>
                 </div>
             <?php endif; ?>
             
@@ -111,8 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['avatar'])) {
             </form>
         </div>
         
-        <h1><?php echo htmlspecialchars($user['ho_ten']); ?></h1>
-        <p class="username">@<?php echo htmlspecialchars($user['username']); ?></p>
+        <h1><?php echo htmlspecialchars($ho_ten_safe ?: 'Chưa cập nhật'); ?></h1>
+        <p class="username">@<?php echo htmlspecialchars($username_safe ?: ''); ?></p>
     </div>
 
     <div class="profile-content">
@@ -120,8 +126,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_FILES['avatar'])) {
             <h2>Thông tin cá nhân</h2>
             <div class="info-grid">
                 <div class="info-item">
+                    <?php $email_safe = $user['email'] ?? 'Chưa cập nhật'; ?>
                     <span class="info-label">📧 Email</span>
-                    <span class="info-value"><?php echo htmlspecialchars($user['email']); ?></span>
+                    <span class="info-value"><?php echo htmlspecialchars($email_safe); ?></span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">📱 Số điện thoại</span>

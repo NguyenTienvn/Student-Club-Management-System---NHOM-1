@@ -1,7 +1,12 @@
 <?php
 session_start();
 require_once(__DIR__ . "/assets/database/connect.php");
+require_once(__DIR__ . "/includes/constants.php");
+require_once(__DIR__ . "/includes/functions.php");
 require 'site.php';
+
+// CSRF token cho các thao tác duyệt/từ chối ngay tại trang thông báo
+$csrf_token = generate_csrf_token();
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -54,6 +59,10 @@ load_header();
 </div>
 
 <script>
+// CSRF cho fetch POST
+const CSRF_FIELD = '<?php echo CSRF_TOKEN_NAME; ?>';
+const CSRF_TOKEN = '<?php echo $csrf_token; ?>';
+
 document.addEventListener('DOMContentLoaded', function() {
     let currentFilter = 'all';
     let allNotifications = [];
@@ -497,6 +506,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const formData = new FormData();
         formData.append('member_id', memberId);
         formData.append('phong_ban_id', phongBanId);
+        if (CSRF_TOKEN) {
+            formData.append(CSRF_FIELD, CSRF_TOKEN);
+        }
         
         fetch('api/approve_member.php', {
             method: 'POST',
@@ -574,6 +586,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Gọi API
         const formData = new FormData();
         formData.append('member_id', memberId);
+        if (CSRF_TOKEN) {
+            formData.append(CSRF_FIELD, CSRF_TOKEN);
+        }
         
         fetch('api/reject_member.php', {
             method: 'POST',

@@ -45,14 +45,14 @@ if (!empty($errors)) {
     exit;
 }
 
-// Format datetime
-function format_datetime($dt) {
+// Format datetime locally to avoid clashing with shared helpers
+function format_datetime_local($dt) {
     return str_replace("T", " ", $dt) . ":00";
 }
 
-$tg_bat_dau = format_datetime($tg_bat_dau);
-$tg_ket_thuc = format_datetime($tg_ket_thuc);
-$han_dang_ky = $han_dang_ky ? format_datetime($han_dang_ky) : null;
+$tg_bat_dau = format_datetime_local($tg_bat_dau);
+$tg_ket_thuc = format_datetime_local($tg_ket_thuc);
+$han_dang_ky = $han_dang_ky ? format_datetime_local($han_dang_ky) : null;
 
 // Kiểm tra logic thời gian
 if (strtotime($tg_ket_thuc) <= strtotime($tg_bat_dau)) {

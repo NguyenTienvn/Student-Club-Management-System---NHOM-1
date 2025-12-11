@@ -10,6 +10,128 @@ if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== tru
     exit;
 }
 
+$message = null;
+$message_type = 'success';
+$edit_user = null;
+
+// Flash message (sau redirect)
+if (isset($_SESSION['flash_users'])) {
+    $message = $_SESSION['flash_users']['message'] ?? null;
+    $message_type = $_SESSION['flash_users']['type'] ?? 'success';
+    unset($_SESSION['flash_users']);
+}
+
+// Xử lý thêm/sửa/xóa
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+    if ($action === 'create') {
+        $ho_ten   = trim($_POST['ho_ten'] ?? '');
+        $username = trim($_POST['username'] ?? '');
+        $email    = trim($_POST['email'] ?? '');
+        $password = $_POST['password'] ?? '';
+        $vai_tro  = $_POST['vai_tro'] === 'ADMIN' ? 'ADMIN' : 'THANH_VIEN';
+
+        if ($ho_ten === '' || $username === '' || $password === '') {
+            $message = 'Vui lòng nhập họ tên, username và mật khẩu.';
+            $message_type = 'error';
+        } elseif (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $message = 'Email không hợp lệ.';
+            $message_type = 'error';
+        } else {
+            // Kiểm tra trùng username
+            $check = $conn->prepare("SELECT id FROM users WHERE username = ?");
+            $check->bind_param("s", $username);
+            $check->execute();
+            if ($check->get_result()->num_rows > 0) {
+                $message = 'Username đã tồn tại.';
+                $message_type = 'error';
+            } else {
+                $hashed = password_hash($password, PASSWORD_DEFAULT);
+                $stmt = $conn->prepare("INSERT INTO users (ho_ten, username, email, password, vai_tro) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param("sssss", $ho_ten, $username, $email, $hashed, $vai_tro);
+                if ($stmt->execute()) {
+                    $_SESSION['flash_users'] = ['message' => 'Thêm người dùng thành công.', 'type' => 'success'];
+                    header('Location: users.php');
+                    exit;
+                } else {
+                    $message = 'Lỗi khi thêm người dùng.';
+                    $message_type = 'error';
+                }
+                $stmt->close();
+            }
+            $check->close();
+        }
+    } elseif ($action === 'update') {
+        $id = (int)($_POST['id'] ?? 0);
+        $ho_ten   = trim($_POST['ho_ten'] ?? '');
+        $email    = trim($_POST['email'] ?? '');
+        $vai_tro  = $_POST['vai_tro'] === 'ADMIN' ? 'ADMIN' : 'THANH_VIEN';
+        $password = $_POST['password'] ?? '';
+
+        if ($id <= 0 || $ho_ten === '') {
+            $message = 'Thiếu thông tin để cập nhật.';
+            $message_type = 'error';
+        } elseif (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $message = 'Email không hợp lệ.';
+            $message_type = 'error';
+        } else {
+            if ($password !== '') {
+                $hashed = password_hash($password, PASSWORD_DEFAULT);
+                $stmt = $conn->prepare("UPDATE users SET ho_ten = ?, email = ?, password = ?, vai_tro = ? WHERE id = ?");
+                $stmt->bind_param("ssssi", $ho_ten, $email, $hashed, $vai_tro, $id);
+            } else {
+                $stmt = $conn->prepare("UPDATE users SET ho_ten = ?, email = ?, vai_tro = ? WHERE id = ?");
+                $stmt->bind_param("sssi", $ho_ten, $email, $vai_tro, $id);
+            }
+            if ($stmt->execute()) {
+                $_SESSION['flash_users'] = ['message' => 'Cập nhật người dùng thành công.', 'type' => 'success'];
+                // nếu đang chỉnh sửa chính mình, cập nhật session display name
+                if ($id === ($_SESSION['admin_id'] ?? 0)) {
+                    $_SESSION['admin_name'] = $ho_ten;
+                    $_SESSION['admin_email'] = $email;
+                }
+                header('Location: users.php');
+                exit;
+            } else {
+                $message = 'Lỗi khi cập nhật người dùng.';
+                $message_type = 'error';
+            }
+            $stmt->close();
+        }
+    } elseif ($action === 'delete') {
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id <= 0) {
+            $message = 'Thiếu thông tin để xóa.';
+            $message_type = 'error';
+        } elseif ($id === ($_SESSION['admin_id'] ?? 0)) {
+            $message = 'Không thể tự xóa tài khoản của bạn.';
+            $message_type = 'error';
+        } else {
+            $stmt = $conn->prepare("DELETE FROM users WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            if ($stmt->execute()) {
+                $_SESSION['flash_users'] = ['message' => 'Đã xóa người dùng.', 'type' => 'success'];
+                header('Location: users.php');
+                exit;
+            } else {
+                $message = 'Lỗi khi xóa người dùng.';
+                $message_type = 'error';
+            }
+            $stmt->close();
+        }
+    }
+}
+
+// Lấy dữ liệu user cần chỉnh sửa nếu có
+if (isset($_GET['edit_id']) && is_numeric($_GET['edit_id'])) {
+    $edit_id = (int)$_GET['edit_id'];
+    $stmt = $conn->prepare("SELECT id, ho_ten, username, email, vai_tro FROM users WHERE id = ?");
+    $stmt->bind_param("i", $edit_id);
+    $stmt->execute();
+    $edit_user = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+}
+
 // Phân trang
 $items_per_page = 20;
 $current_page = isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 0 ? (int)$_GET['page'] : 1;
@@ -89,8 +211,103 @@ $stmt->close();
                 <div>
                     <h1>Quản lý Người dùng</h1>
                     <p>Tổng cộng: <strong><?= number_format($total_users) ?></strong> người dùng</p>
+                    <?php if ($message): ?>
+                        <div class="alert <?= $message_type === 'success' ? 'alert-success' : 'alert-danger' ?>">
+                            <?= htmlspecialchars($message) ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <div>
+                    <button type="button" class="btn-primary" id="btnOpenCreate">Thêm mới</button>
                 </div>
             </div>
+
+            <!-- Modal thêm mới -->
+            <div class="modal" id="createModal">
+                <div class="modal-dialog">
+                    <div class="modal-header">
+                        <h3>Thêm người dùng</h3>
+                        <button type="button" class="modal-close" id="btnCloseCreate">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" class="form-grid">
+                            <input type="hidden" name="action" value="create">
+                            <div class="form-group">
+                                <label>Họ tên</label>
+                                <input type="text" name="ho_ten" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" name="username" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" placeholder="Tuỳ chọn">
+                            </div>
+                            <div class="form-group">
+                                <label>Mật khẩu</label>
+                                <input type="password" name="password" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Vai trò</label>
+                                <select name="vai_tro">
+                                    <option value="THANH_VIEN">Thành viên</option>
+                                    <option value="ADMIN">Admin</option>
+                                </select>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Lưu</button>
+                                <button type="button" class="btn-secondary" id="btnCancelCreate">Hủy</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal chỉnh sửa (khi có edit_id) -->
+            <?php if ($edit_user): ?>
+            <div class="modal open" id="editModal">
+                <div class="modal-dialog">
+                    <div class="modal-header">
+                        <h3>Chỉnh sửa: <?= htmlspecialchars($edit_user['username']) ?></h3>
+                        <button type="button" class="modal-close" id="btnCloseEdit">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" class="form-grid">
+                            <input type="hidden" name="action" value="update">
+                            <input type="hidden" name="id" value="<?= $edit_user['id'] ?>">
+                            <div class="form-group">
+                                <label>Họ tên</label>
+                                <input type="text" name="ho_ten" value="<?= htmlspecialchars($edit_user['ho_ten']) ?>" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Username</label>
+                                <input type="text" value="<?= htmlspecialchars($edit_user['username']) ?>" disabled>
+                            </div>
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" value="<?= htmlspecialchars($edit_user['email'] ?? '') ?>">
+                            </div>
+                            <div class="form-group">
+                                <label>Mật khẩu mới (để trống nếu không đổi)</label>
+                                <input type="password" name="password" placeholder="••••••">
+                            </div>
+                            <div class="form-group">
+                                <label>Vai trò</label>
+                                <select name="vai_tro">
+                                    <option value="THANH_VIEN" <?= $edit_user['vai_tro'] === 'THANH_VIEN' ? 'selected' : '' ?>>Thành viên</option>
+                                    <option value="ADMIN" <?= $edit_user['vai_tro'] === 'ADMIN' ? 'selected' : '' ?>>Admin</option>
+                                </select>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Lưu thay đổi</button>
+                                <a href="users.php" class="btn-secondary">Hủy</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
             
             <!-- Search and Filter -->
             <div class="filter-bar">
@@ -154,18 +371,22 @@ $stmt->close();
                                 <td><?= date('d/m/Y', strtotime($user['created_at'])) ?></td>
                                 <td>
                                     <div class="action-buttons">
-                                        <button class="btn-icon btn-edit" onclick="editUser(<?= $user['id'] ?>)" title="Chỉnh sửa">
+                                        <a class="btn-icon btn-edit" href="users.php?edit_id=<?= $user['id'] ?>" title="Chỉnh sửa">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                             </svg>
-                                        </button>
-                                        <button class="btn-icon btn-delete" onclick="deleteUser(<?= $user['id'] ?>)" title="Xóa">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <polyline points="3 6 5 6 21 6"></polyline>
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                            </svg>
-                                        </button>
+                                        </a>
+                                        <form method="POST" style="display:inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa người dùng này?');">
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="id" value="<?= $user['id'] ?>">
+                                            <button class="btn-icon btn-delete" type="submit" title="Xóa">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -201,16 +422,34 @@ $stmt->close();
     
     <script src="../assets/js/admin.js"></script>
     <script>
-    function editUser(id) {
-        // TODO: Implement edit user modal
-        alert('Chức năng chỉnh sửa đang được phát triển');
-    }
-    
-    function deleteUser(id) {
-        if (!confirm('Bạn có chắc chắn muốn xóa người dùng này?')) return;
-        // TODO: Implement delete user API
-        alert('Chức năng xóa đang được phát triển');
-    }
+    (function() {
+        const modal = document.getElementById('createModal');
+        const editModal = document.getElementById('editModal');
+        const btnOpen = document.getElementById('btnOpenCreate');
+        const btnClose = document.getElementById('btnCloseCreate');
+        const btnCancel = document.getElementById('btnCancelCreate');
+        const btnCloseEdit = document.getElementById('btnCloseEdit');
+
+        const closeModal = () => modal && modal.classList.remove('open');
+        const openModal = () => modal && modal.classList.add('open');
+        const closeEdit = () => editModal && editModal.classList.remove('open');
+
+        if (btnOpen && modal) btnOpen.addEventListener('click', openModal);
+        if (btnClose && modal) btnClose.addEventListener('click', closeModal);
+        if (btnCancel && modal) btnCancel.addEventListener('click', closeModal);
+        if (modal) {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        }
+
+        if (btnCloseEdit && editModal) {
+            btnCloseEdit.addEventListener('click', closeEdit);
+            editModal.addEventListener('click', (e) => {
+                if (e.target === editModal) closeEdit();
+            });
+        }
+    })();
     </script>
 </body>
 </html>

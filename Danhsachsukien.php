@@ -37,6 +37,22 @@ if ($result && $result->num_rows > 0) {
         $events[] = $row;
     }
 }
+
+// Kiểm tra user có sở hữu CLB để bật CTA tạo sự kiện
+$owner_club_id = 0;
+$owner_club_name = '';
+if (isset($_SESSION['user_id'])) {
+    $owner_stmt = $conn->prepare("SELECT id, ten_clb FROM clubs WHERE chu_nhiem_id = ? ORDER BY id ASC LIMIT 1");
+    $owner_stmt->bind_param("i", $_SESSION['user_id']);
+    $owner_stmt->execute();
+    $owner_res = $owner_stmt->get_result();
+    if ($owner_res && $owner_res->num_rows > 0) {
+        $owner = $owner_res->fetch_assoc();
+        $owner_club_id = (int)$owner['id'];
+        $owner_club_name = $owner['ten_clb'];
+    }
+    $owner_stmt->close();
+}
 ?>
 
 <div class="container">
@@ -231,10 +247,20 @@ if ($result && $result->num_rows > 0) {
 
 <!-- CTA SECTION -->
 <div class="cta-full">
-    <h2>Tạo sự kiện của riêng bạn<br>và kết nối với cộng đồng</h2>
-    <button class="cta-btn" onclick="window.location.href='add_Su_kien.php'">
-        Bắt đầu ngay →
-    </button>
+    <?php if ($owner_club_id): ?>
+        <h2>Tạo sự kiện cho CLB của bạn<br>(<?= htmlspecialchars($owner_club_name) ?>)</h2>
+        <button class="cta-btn" onclick="window.location.href='add_Su_kien.php?id=<?= $owner_club_id ?>'">
+            Bắt đầu ngay →
+        </button>
+    <?php else: ?>
+        <h2>Bạn chưa quản lý CLB nào</h2>
+        <p style="color:#4a5568; max-width:520px; margin: 10px auto 18px; font-size:16px;">
+            Hãy tạo hoặc được phân quyền quản lý một Câu lạc bộ để bắt đầu tạo sự kiện cho cộng đồng.
+        </p>
+        <button class="cta-btn" onclick="window.location.href='createCLB.php'">
+            Tạo CLB mới
+        </button>
+    <?php endif; ?>
 </div>
 
 <script src="assets/js/Danhsachsukien.js"></script>

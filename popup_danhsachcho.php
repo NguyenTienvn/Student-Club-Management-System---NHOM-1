@@ -1,6 +1,20 @@
+<?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+require_once __DIR__ . '/includes/constants.php';
+require_once __DIR__ . '/includes/functions.php';
+$popup_csrf_token = generate_csrf_token();
+?>
 <link rel="stylesheet" href="assets/css/popup_danhsachcho.css">
 <link rel="stylesheet" href="assets/css/pending_notifications.css">
-<div id="pendingModal" class="modal-overlay" role="dialog" aria-labelledby="pendingTitle" aria-modal="true">
+<div id="pendingModal"
+     class="modal-overlay"
+     role="dialog"
+     aria-labelledby="pendingTitle"
+     aria-modal="true"
+     data-csrf-field="<?php echo CSRF_TOKEN_NAME; ?>"
+     data-csrf-token="<?php echo $popup_csrf_token; ?>">
     <div class="modal-backdrop" onclick="closePending()"></div>
     <div class="modal-box">
         <div class="modal-header">

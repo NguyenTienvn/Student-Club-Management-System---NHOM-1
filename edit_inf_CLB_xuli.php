@@ -21,12 +21,24 @@ if ($club_id <= 0) {
 // Lấy dữ liệu form với sanitization
 $ten_clb         = sanitize_input(trim($_POST['ten_clb'] ?? ''));
 $linh_vuc         = trim($_POST['linh_vuc'] ?? ''); // Không dùng sanitize_input để tránh encode HTML entities
-$so_tv            = intval($_POST['so_thanh_vien'] ?? 0);
 $mo_ta            = sanitize_input(trim($_POST['mo_ta'] ?? ''));
 $ngay_thanh_lap   = sanitize_input(trim($_POST['ngay_thanh_lap'] ?? ''));
 $contact_email    = sanitize_input(trim($_POST['contact_email'] ?? ''));
 $contact_phone    = sanitize_input(trim($_POST['contact_phone'] ?? ''));
 $contact_website  = sanitize_input(trim($_POST['contact_website'] ?? ''));
+
+// Tự động đếm số lượng thành viên thực tế từ club_members (không dùng giá trị từ form)
+$count_members_sql = "SELECT COUNT(*) as total FROM club_members WHERE club_id = ? AND trang_thai = 'dang_hoat_dong'";
+$count_stmt = $conn->prepare($count_members_sql);
+$count_stmt->bind_param("i", $club_id);
+$count_stmt->execute();
+$count_result = $count_stmt->get_result();
+$so_tv = 0;
+if ($count_result->num_rows > 0) {
+    $count_data = $count_result->fetch_assoc();
+    $so_tv = (int)$count_data['total'];
+}
+$count_stmt->close();
 
 // Validate linh_vuc - đảm bảo có giá trị hợp lệ
 if (empty($linh_vuc)) {
@@ -132,7 +144,7 @@ if ($contactResult->num_rows > 0) {
 }
 
 if ($ok_club) {
-    redirect("Dashboard.php?id=$club_id", 'Cập nhật CLB thành công!', 'success');
+    redirect("edit_inf_CLB.php?id=$club_id", 'Lưu thông tin thành công!', 'success');
 } else {
     log_error("Error updating club", ['club_id' => $club_id, 'user_id' => $user_id]);
     redirect("edit_inf_CLB.php?id=$club_id", 'Lỗi cập nhật', 'error');

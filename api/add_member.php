@@ -16,6 +16,17 @@ if (!is_logged_in()) {
     json_response(['success' => false, 'message' => 'Chưa đăng nhập'], HttpStatus::UNAUTHORIZED);
 }
 
+// CSRF
+$csrf_token = $_POST[CSRF_TOKEN_NAME] ?? '';
+if (!verify_csrf_token($csrf_token)) {
+    json_response(['success' => false, 'message' => 'Phiên không hợp lệ'], HttpStatus::BAD_REQUEST);
+}
+
+// Rate limit
+if (!check_rate_limit('add_member_' . $_SESSION['user_id'], 10, 300)) {
+    json_response(['success' => false, 'message' => 'Bạn thao tác quá nhanh, vui lòng thử lại sau'], HttpStatus::BAD_REQUEST);
+}
+
 // Check request method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_response(['success' => false, 'message' => 'Phương thức không hợp lệ'], HttpStatus::BAD_REQUEST);
@@ -36,9 +47,29 @@ if ($phong_ban_id === null || $phong_ban_id <= 0) {
     json_response(['success' => false, 'message' => 'Vui lòng chọn phòng ban'], HttpStatus::BAD_REQUEST);
 }
 
+// Kiểm tra user tồn tại
+$user_exists_stmt = $conn->prepare("SELECT id FROM users WHERE id = ?");
+$user_exists_stmt->bind_param("i", $user_id);
+$user_exists_stmt->execute();
+$user_exists = $user_exists_stmt->get_result()->num_rows > 0;
+$user_exists_stmt->close();
+if (!$user_exists) {
+    json_response(['success' => false, 'message' => 'Người dùng không tồn tại'], HttpStatus::NOT_FOUND);
+}
+
 // Kiểm tra quyền (phải là đội trưởng hoặc đội phó)
 if (!can_manage_club($conn, $current_user_id, $club_id)) {
     json_response(['success' => false, 'message' => 'Bạn không có quyền thêm thành viên'], HttpStatus::FORBIDDEN);
+}
+
+// Kiểm tra phòng ban thuộc CLB
+$dept_stmt = $conn->prepare("SELECT id FROM phong_ban WHERE id = ? AND club_id = ?");
+$dept_stmt->bind_param("ii", $phong_ban_id, $club_id);
+$dept_stmt->execute();
+$valid_dept = $dept_stmt->get_result()->num_rows > 0;
+$dept_stmt->close();
+if (!$valid_dept) {
+    json_response(['success' => false, 'message' => 'Phòng ban không hợp lệ'], HttpStatus::BAD_REQUEST);
 }
 
 // Kiểm tra xem user đã là thành viên chưa

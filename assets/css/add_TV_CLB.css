@@ -119,10 +119,10 @@ body {
 }
 
 .selected-user-avatar {
-    width: 56px;
-    height: 56px;
+    width: 40px;
+    height: 40px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -153,6 +153,46 @@ body {
 .selected-email {
     font-size: 14px;
     color: #667eea;
+}
+
+.selected-actions {
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.selected-actions label {
+    font-weight: 700;
+    font-size: 14px;
+    color: #1a202c;
+}
+
+.selected-actions select {
+    padding: 10px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+    transition: all 0.2s ease;
+    background: white;
+    min-width: 200px;
+}
+
+.selected-actions select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+}
+
+.helper-text {
+    color: #718096;
+    font-size: 12px;
+}
+
+.selected-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .clear-selection {
@@ -254,10 +294,10 @@ body {
 }
 
 .user-avatar {
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 10px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -404,7 +444,7 @@ body {
 /* Notification styles */
 .notification {
     position: fixed;
-    top: 20px;
+    top: 100px;
     right: 20px;
     padding: 16px 24px;
     border-radius: 12px;
@@ -412,11 +452,12 @@ body {
     font-weight: 600;
     font-size: 15px;
     box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-    z-index: 10000;
+    z-index: 100000;
     opacity: 0;
     transform: translateX(400px);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     max-width: 400px;
+    pointer-events: auto;
 }
 
 .notification.show {

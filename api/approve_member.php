@@ -16,6 +16,17 @@ if (!is_logged_in()) {
     json_response(['success' => false, 'message' => 'Chưa đăng nhập'], HttpStatus::UNAUTHORIZED);
 }
 
+// CSRF
+$csrf_token = $_POST[CSRF_TOKEN_NAME] ?? '';
+if (!verify_csrf_token($csrf_token)) {
+    json_response(['success' => false, 'message' => 'Phiên không hợp lệ'], HttpStatus::BAD_REQUEST);
+}
+
+// Rate limit
+if (!check_rate_limit('approve_member_' . $_SESSION['user_id'], 10, 300)) {
+    json_response(['success' => false, 'message' => 'Bạn thao tác quá nhanh, vui lòng thử lại sau'], HttpStatus::BAD_REQUEST);
+}
+
 // Check request method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     json_response(['success' => false, 'message' => 'Phương thức không hợp lệ'], HttpStatus::BAD_REQUEST);

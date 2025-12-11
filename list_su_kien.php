@@ -23,17 +23,54 @@ load_header();
 
 global $conn;
 
-// Lấy tên câu lạc bộ
-$sql_club = "SELECT ten_clb FROM clubs WHERE id = ?";
+// Lấy tên câu lạc bộ và chủ nhiệm để phân quyền
+$sql_club = "SELECT ten_clb, chu_nhiem_id FROM clubs WHERE id = ?";
 $stmt = $conn->prepare($sql_club);
 $stmt->bind_param("i", $club_id);
 $stmt->execute();
 $club = $stmt->get_result()->fetch_assoc();
 $ten_clb = $club['ten_clb'] ?? 'Câu lạc bộ';
+$is_owner = isset($club['chu_nhiem_id']) && ((int)$club['chu_nhiem_id'] === (int)$_SESSION['user_id']);
 $stmt->close();
 
+// Kiểm tra vai trò của người dùng trong CLB (đội phó cũng được quyền chỉnh sửa)
+$user_role = 'guest';
+$role_sql = "SELECT vai_tro FROM club_members WHERE club_id = ? AND user_id = ? AND trang_thai = 'dang_hoat_dong' LIMIT 1";
+$role_stmt = $conn->prepare($role_sql);
+if ($role_stmt) {
+    $role_stmt->bind_param("ii", $club_id, $_SESSION['user_id']);
+    $role_stmt->execute();
+    $role_res = $role_stmt->get_result();
+    if ($role_res && $role_res->num_rows > 0) {
+        $user_role = strtolower($role_res->fetch_assoc()['vai_tro'] ?? 'guest');
+    }
+    $role_stmt->close();
+}
+
+// Chuẩn hóa vai trò để so sánh (xử lý cả tiếng Việt có dấu)
+function normalize_role($role) {
+    $role = strtolower(trim($role));
+    $map = [
+        'đội phó' => 'doi_pho',
+        'doi pho' => 'doi_pho',
+        'đội trưởng' => 'doi_truong',
+        'doi truong' => 'doi_truong',
+        'trưởng ban' => 'truong_ban',
+        'truong ban' => 'truong_ban',
+        'phó chủ nhiệm' => 'pho_chu_nhiem',
+        'pho chu nhiem' => 'pho_chu_nhiem',
+        'chủ nhiệm' => 'chu_nhiem',
+        'chu nhiem' => 'chu_nhiem'
+    ];
+    return $map[$role] ?? $role;
+}
+
+$role_key = normalize_role($user_role);
+$can_manage = $is_owner || in_array($role_key, ['doi_pho', 'chu_nhiem', 'pho_chu_nhiem', 'truong_ban', 'doi_truong']);
+
 // Tự động cập nhật trạng thái sự kiện dựa trên thời gian hiện tại
-// Thứ tự ưu tiên: Sắp diễn ra > Đang diễn ra > Đã kết thúc
+// CHỈ tự động cập nhật cho "sap_dien_ra" và "dang_dien_ra"
+// KHÔNG động vào "da_ket_thuc" và "da_huy" (để tôn trọng thay đổi thủ công của người dùng)
 $now = date('Y-m-d H:i:s');
 $update_status_sql = "UPDATE events 
                       SET trang_thai = CASE 
@@ -41,11 +78,11 @@ $update_status_sql = "UPDATE events
                           WHEN thoi_gian_bat_dau > ? THEN 'sap_dien_ra'
                           -- Đang diễn ra: đã bắt đầu nhưng chưa kết thúc
                           WHEN thoi_gian_bat_dau <= ? AND thoi_gian_ket_thuc >= ? THEN 'dang_dien_ra'
-                          -- Đã kết thúc: đã kết thúc
-                          WHEN thoi_gian_ket_thuc < ? THEN 'da_ket_thuc'
+                          -- Đã kết thúc: đã kết thúc (chỉ tự động nếu đang là sap_dien_ra hoặc dang_dien_ra)
+                          WHEN thoi_gian_ket_thuc < ? AND trang_thai IN ('sap_dien_ra', 'dang_dien_ra') THEN 'da_ket_thuc'
                           ELSE trang_thai
                       END
-                      WHERE club_id = ? AND trang_thai != 'da_huy'";
+                      WHERE club_id = ? AND trang_thai NOT IN ('da_huy', 'da_ket_thuc')";
 $update_stmt = $conn->prepare($update_status_sql);
 $update_stmt->bind_param("ssssi", $now, $now, $now, $now, $club_id);
 $update_stmt->execute();
@@ -114,9 +151,11 @@ if ($result && $result->num_rows > 0) {
                 <p class="club-name"><?= htmlspecialchars($ten_clb) ?></p>
             </div>
         </div>
-        <a href="add_Su_kien.php?id=<?= $club_id ?>" class="btn-add">
-            <span class="icon">+</span> Tạo sự kiện mới
-        </a>
+        <?php if ($can_manage): ?>
+            <a href="add_Su_kien.php?id=<?= $club_id ?>" class="btn-add">
+                <span class="icon">+</span> Tạo sự kiện mới
+            </a>
+        <?php endif; ?>
     </div>
 
     <!-- Stats -->
@@ -167,15 +206,15 @@ if ($result && $result->num_rows > 0) {
                         <?php endif; ?>
                         
                         <?php
-                        // Tính toán trạng thái dựa trên thời gian thực tế
-                        // Thứ tự ưu tiên: Sắp diễn ra > Đang diễn ra > Đã kết thúc
+                        // Ưu tiên trạng thái trong database (tôn trọng thay đổi thủ công của người dùng)
+                        // Chỉ tự động tính toán nếu trạng thái là "sap_dien_ra" hoặc "dang_dien_ra"
                         $now = time();
                         $start_time = strtotime($event['thoi_gian_bat_dau']);
                         $end_time = strtotime($event['thoi_gian_ket_thuc']);
                         
-                        // Nếu sự kiện đã bị hủy, giữ nguyên trạng thái
-                        if ($event['trang_thai'] === 'da_huy') {
-                            $actual_status = 'da_huy';
+                        // Nếu trạng thái đã được đặt thủ công là "da_huy" hoặc "da_ket_thuc", giữ nguyên
+                        if ($event['trang_thai'] === 'da_huy' || $event['trang_thai'] === 'da_ket_thuc') {
+                            $actual_status = $event['trang_thai'];
                         } elseif ($start_time > $now) {
                             // Sắp diễn ra: chưa bắt đầu
                             $actual_status = 'sap_dien_ra';
@@ -183,7 +222,7 @@ if ($result && $result->num_rows > 0) {
                             // Đang diễn ra: đã bắt đầu nhưng chưa kết thúc
                             $actual_status = 'dang_dien_ra';
                         } elseif ($end_time < $now) {
-                            // Đã kết thúc: đã kết thúc
+                            // Đã kết thúc: đã kết thúc (chỉ tự động nếu đang là sap_dien_ra hoặc dang_dien_ra)
                             $actual_status = 'da_ket_thuc';
                         } else {
                             // Fallback: dùng trạng thái trong database
@@ -202,21 +241,23 @@ if ($result && $result->num_rows > 0) {
                             <?= $status['text'] ?>
                         </span>
                         
-                        <!-- Quick Actions Menu -->
-                        <div class="quick-actions">
-                            <button class="btn-menu" onclick="toggleMenu(<?= $event['id'] ?>)">⋮</button>
-                            <div class="actions-menu" id="menu-<?= $event['id'] ?>">
-                                <button onclick="quickEditStatus(<?= $event['id'] ?>, '<?= $actual_status ?>')">
-                                    🔄 Đổi trạng thái
-                                </button>
-                                <a href="edit_sk.php?id=<?= $event['id'] ?>">
-                                    ✏️ Chỉnh sửa đầy đủ
-                                </a>
-                                <button onclick="deleteEvent(<?= $event['id'] ?>)" class="danger">
-                                    🗑️ Xóa sự kiện
-                                </button>
+                        <?php if ($can_manage): ?>
+                            <!-- Quick Actions Menu -->
+                            <div class="quick-actions">
+                                <button class="btn-menu" onclick="toggleMenu(<?= $event['id'] ?>)">⋮</button>
+                                <div class="actions-menu" id="menu-<?= $event['id'] ?>">
+                                    <button onclick="quickEditStatus(<?= $event['id'] ?>, '<?= $actual_status ?>')">
+                                        🔄 Đổi trạng thái
+                                    </button>
+                                    <a href="edit_sk.php?id=<?= $event['id'] ?>">
+                                        ✏️ Chỉnh sửa đầy đủ
+                                    </a>
+                                    <button onclick="deleteEvent(<?= $event['id'] ?>)" class="danger">
+                                        🗑️ Xóa sự kiện
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        <?php endif; ?>
                     </div>
 
                     <div class="event-content">
@@ -247,9 +288,11 @@ if ($result && $result->num_rows > 0) {
                             <a href="chi_tiet_su_kien.php?id=<?= $event['id'] ?>" class="btn-view">
                                 Xem chi tiết
                             </a>
-                            <a href="edit_sk.php?id=<?= $event['id'] ?>" class="btn-edit">
-                                Chỉnh sửa
-                            </a>
+                            <?php if ($can_manage): ?>
+                                <a href="edit_sk.php?id=<?= $event['id'] ?>" class="btn-edit">
+                                    Chỉnh sửa
+                                </a>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -276,6 +319,7 @@ if ($result && $result->num_rows > 0) {
         </div>
         <form id="statusForm" onsubmit="updateStatus(event)">
             <input type="hidden" id="edit_event_id" name="event_id">
+            <?php echo csrf_token_input(); ?>
             
             <div class="form-group">
                 <label>Trạng thái mới:</label>
@@ -289,7 +333,7 @@ if ($result && $result->num_rows > 0) {
             
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="closeStatusModal()">Hủy</button>
-                <button type="submit" class="btn-submit">Lưu thay đổi</button>
+                <button type="submit" class="btn-submit" id="btnUpdateStatus">Lưu thay đổi</button>
             </div>
         </form>
     </div>
@@ -330,23 +374,42 @@ function closeStatusModal() {
 function updateStatus(e) {
     e.preventDefault();
     
+    const btnSubmit = document.getElementById('btnUpdateStatus');
+    const originalText = btnSubmit.innerHTML;
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<span class="spinner-small"></span> Đang cập nhật...';
+    
     const formData = new FormData(e.target);
     
     fetch('quick_update_status.php', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        // Kiểm tra Content-Type trước khi parse JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            return response.text().then(text => {
+                throw new Error('Server trả về HTML thay vì JSON. Có thể do lỗi server.');
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             alert('✅ Đã cập nhật trạng thái thành công!');
             location.reload();
         } else {
-            alert('❌ Lỗi: ' + data.message);
+            alert('❌ Lỗi: ' + (data.message || 'Không thể cập nhật trạng thái'));
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = originalText;
         }
     })
     .catch(error => {
-        alert('❌ Lỗi kết nối: ' + error);
+        console.error('Error:', error);
+        alert('❌ Lỗi: ' + (error.message || 'Không thể kết nối đến server'));
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalText;
     });
 }
 

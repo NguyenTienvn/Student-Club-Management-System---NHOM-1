@@ -34,12 +34,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $ten_clb = sanitize_input($_POST['ten_clb']);
     $mo_ta = sanitize_input($_POST['mo_ta']);
     $linh_vuc = sanitize_input($_POST['linh_vuc']);
-    $so_thanh_vien = intval($_POST['so_thanh_vien']);
+    $so_thanh_vien = isset($_POST['so_thanh_vien']) ? max(0, intval($_POST['so_thanh_vien'])) : 0;
     
     // Validate inputs
     if (empty($ten_clb) || empty($linh_vuc)) {
         redirect("createCLB.php", "Vui lòng điền đầy đủ thông tin bắt buộc!", "warning");
     }
+    // Tên CLB không trùng (không phân biệt hoa thường)
+    $stmt_check = $conn->prepare("SELECT id FROM clubs WHERE LOWER(ten_clb) = LOWER(?) LIMIT 1");
+    $stmt_check->bind_param("s", $ten_clb);
+    $stmt_check->execute();
+    if ($stmt_check->get_result()->num_rows > 0) {
+        $stmt_check->close();
+        redirect("createCLB.php", "Tên câu lạc bộ đã tồn tại, vui lòng chọn tên khác.", "warning");
+    }
+    $stmt_check->close();
   
     // Upload ảnh với validation đầy đủ
     if (!isset($_FILES['logo_url']) || $_FILES['logo_url']['error'] !== UPLOAD_ERR_OK) {

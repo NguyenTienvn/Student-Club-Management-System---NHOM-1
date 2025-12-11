@@ -31,26 +31,27 @@ if (!$member) {
 }
 ?>
 
-<div id="editRoleModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
+<div id="editRoleModal" class="edit-modal-overlay" style="display:flex;">
+    <div class="edit-modal-backdrop" onclick="closeRoleModal()"></div>
+    <div class="edit-modal-content">
+        <div class="edit-modal-header">
             <h3>Chỉnh sửa chức vụ</h3>
-            <button class="close-btn" onclick="closeRoleModal()">&times;</button>
+            <button class="edit-modal-close" type="button" aria-label="Đóng" onclick="closeRoleModal()">&times;</button>
         </div>
-        
+
         <form id="editRoleForm" action="process_edit_role.php" method="POST">
             <input type="hidden" name="member_id" value="<?= $member['id'] ?>">
             <input type="hidden" name="club_id" value="<?= $club_id ?>">
-            
-            <div class="form-group">
+
+            <div class="edit-form-group">
                 <label>Thành viên</label>
-                <div class="member-display">
+                <div class="edit-member-display">
                     <strong><?= htmlspecialchars($member['ho_ten']) ?></strong>
                     <span class="text-muted">(<?= htmlspecialchars($member['username']) ?>)</span>
                 </div>
             </div>
 
-            <div class="form-group">
+            <div class="edit-form-group">
                 <label for="phong_ban_id">Phòng ban <span class="required">*</span></label>
                 <select id="phong_ban_id" name="phong_ban_id" required>
                     <option value="">-- Chọn phòng ban --</option>
@@ -61,8 +62,8 @@ if (!$member) {
                     <?php endforeach; ?>
                 </select>
             </div>
-            
-            <div class="form-group">
+
+            <div class="edit-form-group">
                 <label for="vai_tro">Chức vụ <span class="required">*</span></label>
                 <select id="vai_tro" name="vai_tro" required>
                     <option value="thanh_vien" <?= in_array($member['vai_tro'], ['thanh_vien']) ? 'selected' : '' ?>>Thành viên</option>
@@ -71,26 +72,14 @@ if (!$member) {
                     <option value="doi_truong" <?= in_array($member['vai_tro'], ['doi_truong', 'chu_nhiem']) ? 'selected' : '' ?>>Đội trưởng</option>
                 </select>
             </div>
-            
-            <div class="modal-footer">
-                <button type="button" class="btn-cancel" onclick="closeRoleModal()">Hủy</button>
-                <button type="submit" class="btn-submit">Cập nhật</button>
+
+            <div class="edit-modal-footer">
+                <button type="button" class="edit-btn-cancel" onclick="closeRoleModal()">Hủy</button>
+                <button type="submit" class="edit-btn-submit">Cập nhật</button>
             </div>
         </form>
     </div>
 </div>
 
-<style>
-.member-display {
-    padding: 10px;
-    background: #f5f5f5;
-    border-radius: 6px;
-    margin-top: 5px;
-}
-.text-muted {
-    color: #666;
-    font-size: 0.9em;
-}
-</style>
-
-<link rel="stylesheet" href="assets/css/edit_role_modal.css">
+<!-- Tái sử dụng giao diện modal của màn hình view_member -->
+<link rel="stylesheet" href="assets/css/view_member.css">

@@ -75,6 +75,13 @@ function showSelectDepartmentModal(memberId, memberName) {
         });
 }
 
+function getCsrf() {
+    const modal = document.getElementById('pendingModal');
+    const field = modal?.dataset?.csrfField || window.CSRF_FIELD || 'csrf_token';
+    const token = modal?.dataset?.csrfToken || window.CSRF_TOKEN || '';
+    return { field, token };
+}
+
 function confirmApprove(memberId, memberName) {
     const select = document.getElementById('selectPhongBan');
     const phongBanId = select ? select.value : null;
@@ -113,10 +120,17 @@ function confirmApprove(memberId, memberName) {
     
     console.log('Sending request to api/approve_member.php');
     
+    const { field: csrfField, token: csrfToken } = getCsrf();
+    const bodyParams = new URLSearchParams({
+        member_id: memberId,
+        phong_ban_id: phongBanId
+    });
+    if (csrfToken) bodyParams.append(csrfField, csrfToken);
+
     fetch('api/approve_member.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `member_id=${memberId}&phong_ban_id=${phongBanId}`
+        body: bodyParams.toString()
     })
     .then(res => {
         console.log('Response status:', res.status);
@@ -190,10 +204,14 @@ function rejectRequest(memberId, memberName) {
     
     console.log('Sending request to api/reject_member.php');
     
+    const { field: csrfField, token: csrfToken } = getCsrf();
+    const bodyParams = new URLSearchParams({ member_id: memberId });
+    if (csrfToken) bodyParams.append(csrfField, csrfToken);
+
     fetch('api/reject_member.php', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: `member_id=${memberId}`
+        body: bodyParams.toString()
     })
     .then(res => {
         console.log('Response status:', res.status);

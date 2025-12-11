@@ -5,8 +5,106 @@ require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../assets/database/connect.php';
 
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-    header('Location: login.php');
+    // redirect về trang đăng nhập gốc thay vì /admin/login.php (không tồn tại)
+    header('Location: ../login.php');
     exit;
+}
+
+$message = null;
+$message_type = 'success';
+if (isset($_SESSION['flash_events'])) {
+    $message = $_SESSION['flash_events']['message'] ?? null;
+    $message_type = $_SESSION['flash_events']['type'] ?? 'success';
+    unset($_SESSION['flash_events']);
+}
+
+// Xử lý thêm/sửa/xóa
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Bảo vệ CSRF cho toàn bộ thao tác quản trị sự kiện
+    $csrf_token = $_POST[CSRF_TOKEN_NAME] ?? '';
+    if (!verify_csrf_token($csrf_token)) {
+        $message = 'Phiên làm việc không hợp lệ, vui lòng thử lại.';
+        $message_type = 'error';
+    }
+
+    $action = $_POST['action'] ?? '';
+    $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+
+    if ($message_type !== 'error' && ($action === 'create' || $action === 'update')) {
+        $ten_su_kien = trim($_POST['ten_su_kien'] ?? '');
+        $club_id = !empty($_POST['club_id']) ? (int)$_POST['club_id'] : 0;
+        $dia_diem = trim($_POST['dia_diem'] ?? '');
+        $thoi_gian_bat_dau = $_POST['thoi_gian_bat_dau'] ?? null;
+        $thoi_gian_ket_thuc = $_POST['thoi_gian_ket_thuc'] ?? null;
+        $so_luong_toi_da = isset($_POST['so_luong_toi_da']) ? max(0, (int)$_POST['so_luong_toi_da']) : null;
+        $han_dang_ky = $_POST['han_dang_ky'] ?? null;
+        $trang_thai = $_POST['trang_thai'] ?? 'sap_dien_ra';
+        $mo_ta = trim($_POST['mo_ta'] ?? '');
+
+        $valid_status = ['sap_dien_ra','dang_dien_ra','da_ket_thuc','da_huy'];
+        if ($ten_su_kien === '' || $club_id <= 0) {
+            $message = 'Vui lòng nhập tên sự kiện và chọn Câu lạc bộ.';
+            $message_type = 'error';
+        } elseif (!in_array($trang_thai, $valid_status, true)) {
+            $message = 'Trạng thái không hợp lệ.';
+            $message_type = 'error';
+        } elseif (!empty($thoi_gian_bat_dau) && !empty($thoi_gian_ket_thuc) && strtotime($thoi_gian_bat_dau) >= strtotime($thoi_gian_ket_thuc)) {
+            $message = 'Thời gian bắt đầu phải trước thời gian kết thúc.';
+            $message_type = 'error';
+        } elseif (!empty($han_dang_ky) && !empty($thoi_gian_bat_dau) && strtotime($han_dang_ky) > strtotime($thoi_gian_bat_dau)) {
+            $message = 'Hạn đăng ký phải trước thời gian bắt đầu sự kiện.';
+            $message_type = 'error';
+        } else {
+            if ($action === 'create') {
+                $stmt = $conn->prepare("INSERT INTO events (club_id, ten_su_kien, mo_ta, dia_diem, thoi_gian_bat_dau, thoi_gian_ket_thuc, so_luong_toi_da, han_dang_ky, trang_thai, created_by) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $created_by = $_SESSION['admin_id'] ?? 0;
+                $stmt->bind_param("isssssissi", $club_id, $ten_su_kien, $mo_ta, $dia_diem, $thoi_gian_bat_dau, $thoi_gian_ket_thuc, $so_luong_toi_da, $han_dang_ky, $trang_thai, $created_by);
+                if ($stmt->execute()) {
+                    $_SESSION['flash_events'] = ['message' => 'Thêm sự kiện thành công.', 'type' => 'success'];
+                    header('Location: events.php');
+                    exit;
+                } else {
+                    $message = 'Lỗi khi thêm sự kiện.';
+                    $message_type = 'error';
+                }
+                $stmt->close();
+            } elseif ($action === 'update') {
+                if ($id <= 0) {
+                    $message = 'Thiếu thông tin sự kiện.';
+                    $message_type = 'error';
+                } else {
+                    $stmt = $conn->prepare("UPDATE events SET club_id=?, ten_su_kien=?, mo_ta=?, dia_diem=?, thoi_gian_bat_dau=?, thoi_gian_ket_thuc=?, so_luong_toi_da=?, han_dang_ky=?, trang_thai=? WHERE id=?");
+                    $stmt->bind_param("isssssissi", $club_id, $ten_su_kien, $mo_ta, $dia_diem, $thoi_gian_bat_dau, $thoi_gian_ket_thuc, $so_luong_toi_da, $han_dang_ky, $trang_thai, $id);
+                    if ($stmt->execute()) {
+                        $_SESSION['flash_events'] = ['message' => 'Cập nhật sự kiện thành công.', 'type' => 'success'];
+                        header('Location: events.php');
+                        exit;
+                    } else {
+                        $message = 'Lỗi khi cập nhật sự kiện.';
+                        $message_type = 'error';
+                    }
+                    $stmt->close();
+                }
+            }
+        }
+    } elseif ($action === 'delete') {
+        if ($id <= 0) {
+            $message = 'Thiếu thông tin sự kiện.';
+            $message_type = 'error';
+        } else {
+            $stmt = $conn->prepare("DELETE FROM events WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            if ($stmt->execute()) {
+                $_SESSION['flash_events'] = ['message' => 'Đã xóa sự kiện.', 'type' => 'success'];
+                header('Location: events.php');
+                exit;
+            } else {
+                $message = 'Lỗi khi xóa sự kiện.';
+                $message_type = 'error';
+            }
+            $stmt->close();
+        }
+    }
 }
 
 $items_per_page = 20;
@@ -39,7 +137,7 @@ if (!empty($params)) {
 }
 $total_pages = ceil($total_events / $items_per_page);
 
-$sql = "SELECT e.id, e.ten_su_kien, c.ten_clb, e.thoi_gian_bat_dau, e.trang_thai, e.created_at
+$sql = "SELECT e.id, e.ten_su_kien, c.ten_clb, e.thoi_gian_bat_dau, e.thoi_gian_ket_thuc, e.trang_thai, e.created_at, e.dia_diem
         FROM events e
         LEFT JOIN clubs c ON e.club_id = c.id
         $where_clause
@@ -58,6 +156,61 @@ if (!empty($types)) {
 $stmt->execute();
 $events = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
+
+// Danh sách CLB
+$clubs = $conn->query("SELECT id, ten_clb FROM clubs ORDER BY ten_clb ASC")->fetch_all(MYSQLI_ASSOC);
+
+// Tự động cập nhật trạng thái dựa trên thời gian
+$now = new DateTime();
+foreach ($events as &$evt) {
+    if (empty($evt['thoi_gian_bat_dau']) && empty($evt['thoi_gian_ket_thuc'])) {
+        continue;
+    }
+    $current_status = $evt['trang_thai'];
+    $target_status = $current_status;
+
+    try {
+        $start = !empty($evt['thoi_gian_bat_dau']) ? new DateTime($evt['thoi_gian_bat_dau']) : null;
+        $end   = !empty($evt['thoi_gian_ket_thuc']) ? new DateTime($evt['thoi_gian_ket_thuc']) : null;
+
+        // Ưu tiên nếu sự kiện đã hủy thì giữ nguyên
+        if ($current_status === 'da_huy') {
+            $target_status = 'da_huy';
+        } elseif ($end && $now >= $end) {
+            $target_status = 'da_ket_thuc';
+        } elseif ($start && $now >= $start && (!$end || $now < $end)) {
+            $target_status = 'dang_dien_ra';
+        } elseif ($start && $now < $start) {
+            $target_status = 'sap_dien_ra';
+        }
+
+        // Đồng bộ DB để tránh trạng thái hiển thị lệch
+        if ($target_status !== $current_status) {
+            $evt['trang_thai'] = $target_status;
+            $update_stmt = $conn->prepare("UPDATE events SET trang_thai = ? WHERE id = ?");
+            if ($update_stmt) {
+                $update_stmt->bind_param("si", $target_status, $evt['id']);
+                $update_stmt->execute();
+                $update_stmt->close();
+            }
+        }
+    } catch (Exception $e) {
+        // Nếu parse thời gian lỗi, bỏ qua cập nhật
+        continue;
+    }
+}
+unset($evt);
+
+// Sự kiện đang chỉnh sửa
+$edit_event = null;
+if (isset($_GET['edit_id']) && is_numeric($_GET['edit_id'])) {
+    $edit_id = (int)$_GET['edit_id'];
+    $stmt = $conn->prepare("SELECT * FROM events WHERE id = ?");
+    $stmt->bind_param("i", $edit_id);
+    $stmt->execute();
+    $edit_event = $stmt->get_result()->fetch_assoc();
+    $stmt->close();
+}
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -78,8 +231,151 @@ $stmt->close();
                 <div>
                     <h1>Quản lý Sự kiện</h1>
                     <p>Tổng cộng: <strong><?= number_format($total_events) ?></strong> sự kiện</p>
+                    <?php if ($message): ?>
+                        <div class="alert <?= $message_type === 'success' ? 'alert-success' : 'alert-danger' ?>">
+                            <?= htmlspecialchars($message) ?>
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <div>
+                    <button type="button" class="btn-primary" id="btnOpenCreateEvent">Thêm mới</button>
                 </div>
             </div>
+
+            <!-- Modal thêm sự kiện -->
+            <div class="modal" id="createEventModal">
+                <div class="modal-dialog">
+                    <div class="modal-header">
+                        <h3>Thêm sự kiện</h3>
+                        <button type="button" class="modal-close" id="btnCloseCreateEvent">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" class="form-grid">
+                            <?= csrf_token_input(); ?>
+                            <input type="hidden" name="action" value="create">
+                            <div class="form-group">
+                                <label>Tên sự kiện</label>
+                                <input type="text" name="ten_su_kien" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Câu lạc bộ</label>
+                                <select name="club_id" required>
+                                    <option value="">-- Chọn CLB --</option>
+                                    <?php foreach ($clubs as $club): ?>
+                                        <option value="<?= $club['id'] ?>"><?= htmlspecialchars($club['ten_clb']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Địa điểm</label>
+                                <input type="text" name="dia_diem" placeholder="Hội trường, phòng, link...">
+                            </div>
+                            <div class="form-group">
+                                <label>Thời gian bắt đầu</label>
+                                <input type="datetime-local" name="thoi_gian_bat_dau">
+                            </div>
+                            <div class="form-group">
+                                <label>Thời gian kết thúc</label>
+                                <input type="datetime-local" name="thoi_gian_ket_thuc">
+                            </div>
+                            <div class="form-group">
+                                <label>Hạn đăng ký</label>
+                                <input type="datetime-local" name="han_dang_ky">
+                            </div>
+                            <div class="form-group">
+                                <label>Số lượng tối đa</label>
+                                <input type="number" name="so_luong_toi_da" min="0" value="">
+                            </div>
+                            <div class="form-group">
+                                <label>Trạng thái</label>
+                                <select name="trang_thai">
+                                    <option value="sap_dien_ra">Sắp diễn ra</option>
+                                    <option value="dang_dien_ra">Đang diễn ra</option>
+                                    <option value="da_ket_thuc">Đã kết thúc</option>
+                                    <option value="da_huy">Đã hủy</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="grid-column:1/-1;">
+                                <label>Mô tả</label>
+                                <textarea name="mo_ta" rows="3" placeholder="Giới thiệu ngắn về sự kiện"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Lưu</button>
+                                <button type="button" class="btn-secondary" id="btnCancelCreateEvent">Hủy</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal chỉnh sửa -->
+            <?php if ($edit_event): ?>
+            <div class="modal open" id="editEventModal">
+                <div class="modal-dialog">
+                    <div class="modal-header">
+                        <h3>Chỉnh sửa: <?= htmlspecialchars($edit_event['ten_su_kien']) ?></h3>
+                        <button type="button" class="modal-close" id="btnCloseEditEvent">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST" class="form-grid">
+                            <?= csrf_token_input(); ?>
+                            <input type="hidden" name="action" value="update">
+                            <input type="hidden" name="id" value="<?= $edit_event['id'] ?>">
+                            <div class="form-group">
+                                <label>Tên sự kiện</label>
+                                <input type="text" name="ten_su_kien" value="<?= htmlspecialchars($edit_event['ten_su_kien']) ?>" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Câu lạc bộ</label>
+                                <select name="club_id" required>
+                                    <option value="">-- Chọn CLB --</option>
+                                    <?php foreach ($clubs as $club): ?>
+                                        <option value="<?= $club['id'] ?>" <?= $edit_event['club_id'] == $club['id'] ? 'selected' : '' ?>><?= htmlspecialchars($club['ten_clb']) ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Địa điểm</label>
+                                <input type="text" name="dia_diem" value="<?= htmlspecialchars($edit_event['dia_diem'] ?? '') ?>">
+                            </div>
+                            <div class="form-group">
+                                <label>Thời gian bắt đầu</label>
+                                <input type="datetime-local" name="thoi_gian_bat_dau" value="<?= !empty($edit_event['thoi_gian_bat_dau']) ? date('Y-m-d\TH:i', strtotime($edit_event['thoi_gian_bat_dau'])) : '' ?>">
+                            </div>
+                            <div class="form-group">
+                                <label>Thời gian kết thúc</label>
+                                <input type="datetime-local" name="thoi_gian_ket_thuc" value="<?= !empty($edit_event['thoi_gian_ket_thuc']) ? date('Y-m-d\TH:i', strtotime($edit_event['thoi_gian_ket_thuc'])) : '' ?>">
+                            </div>
+                            <div class="form-group">
+                                <label>Hạn đăng ký</label>
+                                <input type="datetime-local" name="han_dang_ky" value="<?= !empty($edit_event['han_dang_ky']) ? date('Y-m-d\TH:i', strtotime($edit_event['han_dang_ky'])) : '' ?>">
+                            </div>
+                            <div class="form-group">
+                                <label>Số lượng tối đa</label>
+                                <input type="number" name="so_luong_toi_da" min="0" value="<?= htmlspecialchars($edit_event['so_luong_toi_da'] ?? '') ?>">
+                            </div>
+                            <div class="form-group">
+                                <label>Trạng thái</label>
+                                <select name="trang_thai">
+                                    <option value="sap_dien_ra" <?= $edit_event['trang_thai'] === 'sap_dien_ra' ? 'selected' : '' ?>>Sắp diễn ra</option>
+                                    <option value="dang_dien_ra" <?= $edit_event['trang_thai'] === 'dang_dien_ra' ? 'selected' : '' ?>>Đang diễn ra</option>
+                                    <option value="da_ket_thuc" <?= $edit_event['trang_thai'] === 'da_ket_thuc' ? 'selected' : '' ?>>Đã kết thúc</option>
+                                    <option value="da_huy" <?= $edit_event['trang_thai'] === 'da_huy' ? 'selected' : '' ?>>Đã hủy</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="grid-column:1/-1;">
+                                <label>Mô tả</label>
+                                <textarea name="mo_ta" rows="3"><?= htmlspecialchars($edit_event['mo_ta'] ?? '') ?></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">Lưu thay đổi</button>
+                                <a href="events.php" class="btn-secondary">Hủy</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
             
             <div class="filter-bar">
                 <form method="GET" class="filter-form">
@@ -106,6 +402,7 @@ $stmt->close();
                             <th>Câu lạc bộ</th>
                             <th>Thời gian</th>
                             <th>Trạng thái</th>
+                            <th>Địa điểm</th>
                             <th>Ngày tạo</th>
                             <th>Thao tác</th>
                         </tr>
@@ -119,8 +416,18 @@ $stmt->close();
                                 <td><?= htmlspecialchars($event['ten_clb'] ?? 'N/A') ?></td>
                                 <td><?= !empty($event['thoi_gian_bat_dau']) ? date('d/m/Y H:i', strtotime($event['thoi_gian_bat_dau'])) : 'Chưa có' ?></td>
                                 <td>
-                                    <span class="badge badge-info"><?= htmlspecialchars($event['trang_thai']) ?></span>
+                                    <?php
+                                        $status = $event['trang_thai'];
+                                        $badgeClass = 'badge-info';
+                                        if ($status === 'da_ket_thuc') $badgeClass = 'badge-success';
+                                        elseif ($status === 'da_huy') $badgeClass = 'badge-danger';
+                                        elseif ($status === 'dang_dien_ra') $badgeClass = 'badge-primary';
+                                    ?>
+                                    <span class="badge <?= $badgeClass ?>">
+                                        <?= htmlspecialchars($status) ?>
+                                    </span>
                                 </td>
+                                <td><?= htmlspecialchars($event['dia_diem'] ?? '') ?></td>
                                 <td><?= date('d/m/Y', strtotime($event['created_at'])) ?></td>
                                 <td>
                                     <div class="action-buttons">
@@ -130,12 +437,23 @@ $stmt->close();
                                                 <circle cx="12" cy="12" r="3"></circle>
                                             </svg>
                                         </a>
-                                        <button class="btn-icon btn-delete" onclick="deleteEvent(<?= $event['id'] ?>)" title="Xóa">
+                                        <a href="events.php?edit_id=<?= $event['id'] ?>" class="btn-icon btn-edit" title="Chỉnh sửa">
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                <polyline points="3 6 5 6 21 6"></polyline>
-                                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                             </svg>
-                                        </button>
+                                        </a>
+                                        <form method="POST" style="display:inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa sự kiện này?');">
+                                            <?= csrf_token_input(); ?>
+                                            <input type="hidden" name="action" value="delete">
+                                            <input type="hidden" name="id" value="<?= $event['id'] ?>">
+                                            <button class="btn-icon btn-delete" type="submit" title="Xóa">
+                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                                </svg>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>
@@ -170,10 +488,27 @@ $stmt->close();
     
     <script src="../assets/js/admin.js"></script>
     <script>
-    function deleteEvent(id) {
-        if (!confirm('Bạn có chắc chắn muốn xóa sự kiện này?')) return;
-        alert('Chức năng xóa đang được phát triển');
-    }
+    (function() {
+        const createModal = document.getElementById('createEventModal');
+        const editModal = document.getElementById('editEventModal');
+        const btnOpen = document.getElementById('btnOpenCreateEvent');
+        const btnClose = document.getElementById('btnCloseCreateEvent');
+        const btnCancel = document.getElementById('btnCancelCreateEvent');
+        const btnCloseEdit = document.getElementById('btnCloseEditEvent');
+
+        const closeModal = (m) => m && m.classList.remove('open');
+        const openModal = (m) => m && m.classList.add('open');
+
+        if (btnOpen && createModal) btnOpen.addEventListener('click', () => openModal(createModal));
+        [btnClose, btnCancel].forEach(b => b && b.addEventListener('click', () => closeModal(createModal)));
+        if (createModal) createModal.addEventListener('click', (e) => { if (e.target === createModal) closeModal(createModal); });
+
+        if (btnCloseEdit && editModal) btnCloseEdit.addEventListener('click', () => closeModal(editModal));
+        if (editModal) {
+            editModal.addEventListener('click', (e) => { if (e.target === editModal) closeModal(editModal); });
+            openModal(editModal); // mở sẵn khi có edit_id
+        }
+    })();
     </script>
 </body>
 </html>

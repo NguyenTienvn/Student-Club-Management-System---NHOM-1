@@ -52,3 +52,10 @@
 [2025-12-10 12:18:17] User login successful: Admin {"ip":"::1"}
 [2025-12-10 12:18:20] User login successful: Admin {"ip":"::1"}
 [2025-12-10 12:18:39] User login successful: 4651050265 {"ip":"::1"}
+[2025-12-10 16:46:39] User logout: 4651050265 {"ip":"::1"}
+[2025-12-10 16:46:43] User login successful: Admin {"ip":"::1"}
+[2025-12-10 16:47:57] User logout: Admin {"ip":"::1"}
+[2025-12-10 16:47:59] User login successful: Admin {"ip":"::1"}
+[2025-12-10 21:42:02] User logout: Admin {"ip":"::1"}
+[2025-12-10 21:42:05] User login successful: 4651050265 {"ip":"::1"}
+[2025-12-10 21:45:33] Member added to club {"club_id":5,"user_id":3,"added_by":1}

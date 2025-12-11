@@ -16,6 +16,9 @@ $user_data = null;
 
 // Bước 1: Nhập username/email
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['find_account'])) {
+    if (!check_rate_limit('forgot_step1', 5, 600)) {
+        $error = "Bạn đã thử quá nhiều lần. Vui lòng thử lại sau vài phút.";
+    } else {
     $identifier = trim($_POST['identifier'] ?? '');
     
     if (empty($identifier)) {
@@ -36,9 +39,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['find_account'])) {
         }
     }
 }
+}
 
 // Bước 2: Xác thực email
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verify_email'])) {
+    if (!check_rate_limit('forgot_step2', 5, 600)) {
+        $error = "Bạn đã thử quá nhiều lần. Vui lòng thử lại sau vài phút.";
+        $step = 2;
+    } else {
     $email = trim($_POST['email'] ?? '');
     $user_id = $_SESSION['reset_user_id'] ?? 0;
     
@@ -57,9 +65,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verify_email'])) {
         }
     }
 }
+}
 
 // Bước 3: Đặt mật khẩu mới
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['reset_password'])) {
+    if (!check_rate_limit('forgot_step3', 5, 600)) {
+        $error = "Bạn đã thử quá nhiều lần. Vui lòng thử lại sau vài phút.";
+        $step = 3;
+    } else {
     $new_password = trim($_POST['new_password'] ?? '');
     $confirm_password = trim($_POST['confirm_password'] ?? '');
     $user_id = $_SESSION['reset_user_id'] ?? 0;
@@ -82,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['reset_password'])) {
             $error = "Có lỗi xảy ra. Vui lòng thử lại!";
         }
     }
+}
 }
 
 // Lấy thông tin user nếu đang ở bước 2 hoặc 3

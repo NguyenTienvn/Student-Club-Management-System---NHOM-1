@@ -4,13 +4,62 @@ let currentImageIndex = 0;
 
 // Load gallery data from DOM
 document.addEventListener('DOMContentLoaded', function() {
+    buildGalleryData();
+});
+
+function getToastContainer() {
+    let c = document.getElementById('toast-container');
+    if (!c) {
+        c = document.createElement('div');
+        c.id = 'toast-container';
+        c.style.position = 'fixed';
+        c.style.top = '16px';
+        c.style.right = '16px';
+        c.style.zIndex = '9999';
+        c.style.display = 'flex';
+        c.style.flexDirection = 'column';
+        c.style.gap = '8px';
+        document.body.appendChild(c);
+    }
+    return c;
+}
+
+function showToast(message, type = 'info') {
+    const container = getToastContainer();
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.padding = '12px 14px';
+    toast.style.borderRadius = '6px';
+    toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
+    toast.style.color = '#fff';
+    toast.style.fontSize = '14px';
+    toast.style.maxWidth = '320px';
+    toast.style.wordBreak = 'break-word';
+    const colors = {
+        success: '#2e7d32',
+        error: '#c62828',
+        info: '#1565c0',
+        warning: '#ef6c00'
+    };
+    toast.style.background = colors[type] || colors.info;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, 2400);
+}
+
+function buildGalleryData() {
+    galleryData = [];
     const items = document.querySelectorAll('.gallery-item');
     items.forEach((item, index) => {
         const img = item.querySelector('img');
         const overlay = item.querySelector('.item-overlay');
-        
+        const dataId = item.getAttribute('data-id');
         galleryData.push({
-            id: index,
+            id: dataId ? parseInt(dataId, 10) : index,
+            domId: item.id,
             src: img.src,
             title: overlay?.querySelector('h3')?.textContent || 'Ảnh CLB',
             description: overlay?.querySelector('p')?.textContent || '',
@@ -18,7 +67,7 @@ document.addEventListener('DOMContentLoaded', function() {
             date: overlay?.querySelector('.item-meta span:last-child')?.textContent || ''
         });
     });
-});
+}
 
 // Upload Modal
 function openUploadModal() {
@@ -105,8 +154,18 @@ function removePreview(index) {
 }
 
 // Lightbox
-function openLightbox(imageId) {
-    currentImageIndex = imageId;
+function getIndexById(id) {
+    return galleryData.findIndex(g => g.id === id);
+}
+
+function openLightbox(imageIdx) {
+    // imageIdx có thể là id (DB) hoặc index; ưu tiên tìm theo id
+    let idx = imageIdx;
+    if (idx >= galleryData.length || idx < 0) {
+        const found = getIndexById(imageIdx);
+        if (found >= 0) idx = found;
+    }
+    currentImageIndex = idx;
     updateLightbox();
     document.getElementById('lightbox').classList.add('active');
     document.body.style.overflow = 'hidden';
@@ -119,13 +178,17 @@ function closeLightbox() {
 
 function updateLightbox() {
     if (galleryData.length === 0) return;
-    
+    currentImageIndex = Math.max(0, Math.min(currentImageIndex, galleryData.length - 1));
     const data = galleryData[currentImageIndex];
     document.getElementById('lightboxImage').src = data.src;
     document.getElementById('lightboxTitle').textContent = data.title;
     document.getElementById('lightboxDescription').textContent = data.description;
     document.getElementById('lightboxUploader').textContent = data.uploader;
     document.getElementById('lightboxDate').textContent = data.date;
+    const delBtn = document.getElementById('lightboxDeleteBtn');
+    if (delBtn) {
+        delBtn.dataset.index = currentImageIndex;
+    }
 }
 
 function prevImage() {
@@ -165,3 +228,57 @@ document.getElementById('lightbox')?.addEventListener('click', (e) => {
         closeLightbox();
     }
 });
+
+// Delete photo (manage mode only)
+function deletePhoto(index) {
+    if (!CAN_MANAGE_GALLERY) return;
+    if (!confirm('Xóa ảnh này?')) return;
+    const data = galleryData[index];
+    if (!data) return;
+    deletePhotoRequest(data.id, index);
+}
+
+function deletePhotoById(id) {
+    if (!CAN_MANAGE_GALLERY) return;
+    if (!confirm('Xóa ảnh này?')) return;
+    const index = galleryData.findIndex(g => g.id === id);
+    deletePhotoRequest(id, index);
+}
+
+function deletePhotoRequest(id, index) {
+    if (id == null || id < 0) return;
+    fetch('delete-gallery.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams({
+            id,
+            club_id: CLUB_ID,
+            [CSRF_FIELD]: CSRF_TOKEN
+        })
+    })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            showToast(res.message || 'Đã xóa ảnh', 'success');
+            const el = document.querySelector(`[data-id="${id}"]`);
+            if (el) el.remove();
+            buildGalleryData();
+            if (galleryData.length === 0) {
+                closeLightbox();
+                location.reload();
+                return;
+            }
+            if (index < 0) {
+                currentImageIndex = 0;
+            } else {
+                currentImageIndex = Math.min(index, galleryData.length - 1);
+            }
+            updateLightbox();
+        } else {
+            showToast(res.message || 'Không thể xóa ảnh', 'error');
+        }
+    })
+    .catch(() => {
+        showToast('Lỗi kết nối, không thể xóa ảnh', 'error');
+    });
+}

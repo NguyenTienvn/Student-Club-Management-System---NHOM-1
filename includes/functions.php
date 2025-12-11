@@ -98,12 +98,32 @@ function is_logged_in() {
 }
 
 /**
+ * Try auto login from remember cookie (used before redirect)
+ */
+function try_auto_login_from_cookie() {
+    if (is_logged_in()) {
+        return true;
+    }
+    // Tải hàm autoLoginFromCookie nếu chưa có
+    if (!function_exists('autoLoginFromCookie')) {
+        $path = dirname(__DIR__) . '/xulylogin.php';
+        if (file_exists($path)) {
+            require_once $path;
+        }
+    }
+    if (function_exists('autoLoginFromCookie')) {
+        return autoLoginFromCookie();
+    }
+    return false;
+}
+
+/**
  * Require login
  */
 function require_login() {
-    if (!is_logged_in()) {
-        redirect('login.php', 'Vui lòng đăng nhập để tiếp tục', 'warning');
-    }
+    if (is_logged_in()) return;
+    if (try_auto_login_from_cookie()) return;
+    redirect('login.php', 'Vui lòng đăng nhập để tiếp tục', 'warning');
 }
 
 /**
@@ -117,9 +137,10 @@ function is_admin() {
  * Require admin
  */
 function require_admin() {
-    if (!is_admin()) {
-        redirect('login.php', 'Vui lòng đăng nhập với quyền admin', 'warning');
-    }
+    if (is_admin()) return;
+    // Thử auto login nếu có cookie
+    if (!is_logged_in() && try_auto_login_from_cookie() && is_admin()) return;
+    redirect('login.php', 'Vui lòng đăng nhập với quyền admin', 'warning');
 }
 
 /**
@@ -208,18 +229,23 @@ function delete_file($filepath) {
 
 /**
  * Format datetime for display
+ * Wrapped in function_exists để tránh đụng độ các file xử lý có hàm cùng tên.
  */
-function format_datetime($datetime, $format = 'd/m/Y H:i') {
-    if (empty($datetime)) return '';
-    return date($format, strtotime($datetime));
+if (!function_exists('format_datetime')) {
+    function format_datetime($datetime, $format = 'd/m/Y H:i') {
+        if (empty($datetime)) return '';
+        return date($format, strtotime($datetime));
+    }
 }
 
 /**
  * Format datetime for input
  */
-function format_datetime_input($datetime) {
-    if (empty($datetime)) return '';
-    return date('Y-m-d\TH:i', strtotime($datetime));
+if (!function_exists('format_datetime_input')) {
+    function format_datetime_input($datetime) {
+        if (empty($datetime)) return '';
+        return date('Y-m-d\TH:i', strtotime($datetime));
+    }
 }
 
 /**
@@ -367,5 +393,27 @@ function check_session_timeout() {
     }
     $_SESSION['last_activity'] = time();
     return true;
+}
+
+/**
+ * Simple session-based rate limiter.
+ * Returns true if under limit, false if blocked.
+ */
+function check_rate_limit($key, $limit = 5, $window_seconds = 300) {
+    if (!isset($_SESSION['rate_limit'])) {
+        $_SESSION['rate_limit'] = [];
+    }
+    $now = time();
+    $bucket = $_SESSION['rate_limit'][$key] ?? ['count' => 0, 'start' => $now];
+
+    // Reset window
+    if ($now - $bucket['start'] >= $window_seconds) {
+        $bucket = ['count' => 0, 'start' => $now];
+    }
+
+    $bucket['count']++;
+    $_SESSION['rate_limit'][$key] = $bucket;
+
+    return $bucket['count'] <= $limit;
 }
 ?>

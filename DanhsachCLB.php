@@ -243,9 +243,9 @@ $total_clubs = count($clubs);
 
 <div class="cta-full">
     <h2>Dễ dàng Tạo & Quản lý Câu Lạc Bộ<br>ngay trên LeaderClub</h2>
-    <button class="cta-btn">
+    <a class="cta-btn" href="createCLB.php">
         Bắt đầu ngay →
-    </button>
+    </a>
 </div>
 
 

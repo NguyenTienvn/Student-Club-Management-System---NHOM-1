@@ -1,4 +1,8 @@
 <?php
+session_start();
+require_once __DIR__ . '/includes/config.php';
+require_once __DIR__ . '/includes/functions.php';
+
 $page_css = "settings.css";
 require 'site.php';
 load_top();
@@ -73,13 +77,142 @@ if (!isset($_SESSION['user_id'])) {
                     <h3>Xóa tài khoản</h3>
                     <p>Xóa vĩnh viễn tài khoản và tất cả dữ liệu</p>
                 </div>
-                <button class="btn-danger">Xóa tài khoản</button>
+                <button class="btn-danger" onclick="openDeleteAccountModal()">Xóa tài khoản</button>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Modal xác nhận xóa tài khoản -->
+<div id="deleteAccountModal" class="delete-modal-overlay" style="display: none;">
+    <div class="delete-modal-backdrop" onclick="closeDeleteAccountModal()"></div>
+    <div class="delete-modal-content">
+        <div class="delete-modal-header">
+            <div class="delete-modal-icon">⚠️</div>
+            <h2>Xác nhận xóa tài khoản</h2>
+        </div>
+        <div class="delete-modal-body">
+            <p class="warning-text">
+                <strong>Hành động này không thể hoàn tác!</strong>
+            </p>
+            <p>Tất cả dữ liệu của bạn sẽ bị xóa vĩnh viễn, bao gồm:</p>
+            <ul class="delete-list">
+                <li>Thông tin cá nhân</li>
+                <li>Tất cả thành viên trong các CLB</li>
+                <li>Đăng ký sự kiện</li>
+                <li>Thông báo và lịch sử hoạt động</li>
+            </ul>
+            <p class="note-text">
+                <strong>Lưu ý:</strong> Nếu bạn đang là chủ nhiệm của CLB nào đó, bạn cần chuyển quyền hoặc xóa CLB trước khi xóa tài khoản.
+            </p>
+            <div class="confirm-input-group">
+                <label for="confirmDeleteInput">
+                    Để xác nhận, vui lòng nhập <strong>"XÓA TÀI KHOẢN"</strong> vào ô bên dưới:
+                </label>
+                <input 
+                    type="text" 
+                    id="confirmDeleteInput" 
+                    placeholder="Nhập: XÓA TÀI KHOẢN"
+                    autocomplete="off"
+                >
+            </div>
+        </div>
+        <div class="delete-modal-footer">
+            <button type="button" class="btn-cancel" onclick="closeDeleteAccountModal()">
+                Hủy
+            </button>
+            <button type="button" class="btn-delete-confirm" id="btnDeleteAccount" onclick="confirmDeleteAccount()">
+                Xóa tài khoản
+            </button>
+        </div>
+    </div>
+</div>
+
+<?php 
+$csrf_token_value = generate_csrf_token();
+?>
 <script>
+window.CSRF_FIELD = '<?php echo CSRF_TOKEN_NAME; ?>';
+window.CSRF_TOKEN = '<?php echo $csrf_token_value; ?>';
+
+function openDeleteAccountModal() {
+    const modal = document.getElementById('deleteAccountModal');
+    const input = document.getElementById('confirmDeleteInput');
+    if (modal) {
+        modal.style.display = 'flex';
+        setTimeout(() => {
+            modal.classList.add('show');
+            if (input) input.focus();
+        }, 10);
+    }
+}
+
+function closeDeleteAccountModal() {
+    const modal = document.getElementById('deleteAccountModal');
+    const input = document.getElementById('confirmDeleteInput');
+    if (modal) {
+        modal.classList.remove('show');
+        setTimeout(() => {
+            modal.style.display = 'none';
+            if (input) input.value = '';
+        }, 300);
+    }
+}
+
+function confirmDeleteAccount() {
+    const confirmText = document.getElementById('confirmDeleteInput').value.trim();
+    const btnDelete = document.getElementById('btnDeleteAccount');
+    
+    if (confirmText !== 'XÓA TÀI KHOẢN') {
+        alert('Vui lòng nhập chính xác "XÓA TÀI KHOẢN" để xác nhận!');
+        return;
+    }
+    
+    if (!confirm('Bạn có chắc chắn muốn xóa tài khoản? Hành động này không thể hoàn tác!')) {
+        return;
+    }
+    
+    // Disable button và hiển thị loading
+    btnDelete.disabled = true;
+    btnDelete.innerHTML = '<span class="spinner-small"></span> Đang xóa...';
+    
+    const formData = new URLSearchParams();
+    formData.append('confirm_text', confirmText);
+    if (window.CSRF_FIELD && window.CSRF_TOKEN) {
+        formData.append(window.CSRF_FIELD, window.CSRF_TOKEN);
+    }
+    
+    fetch('api/delete_account.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            alert('Tài khoản đã được xóa thành công. Bạn sẽ được chuyển về trang chủ.');
+            window.location.href = 'trangchu.php';
+        } else {
+            alert('Lỗi: ' + (data.message || 'Không thể xóa tài khoản'));
+            btnDelete.disabled = false;
+            btnDelete.innerHTML = 'Xóa tài khoản';
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Lỗi kết nối server. Vui lòng thử lại!');
+        btnDelete.disabled = false;
+        btnDelete.innerHTML = 'Xóa tài khoản';
+    });
+}
+
+// Đóng modal khi nhấn ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDeleteAccountModal();
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     const darkModeToggle = document.getElementById('darkModeToggle');
     const emailNotification = document.getElementById('emailNotification');

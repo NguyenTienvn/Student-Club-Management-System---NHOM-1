@@ -34,6 +34,31 @@ if ($result->num_rows === 0) {
 
 $event = $result->fetch_assoc();
 
+// Cập nhật trạng thái theo thời gian hiện tại (tránh hiển thị sai)
+$now = date('Y-m-d H:i:s');
+$start = $event['thoi_gian_bat_dau'] ?? null;
+$end   = $event['thoi_gian_ket_thuc'] ?? null;
+$calculated_status = $event['trang_thai'];
+
+if ($start && $end && $start <= $now && $now <= $end) {
+    $calculated_status = 'dang_dien_ra';
+} elseif ($start && $start > $now) {
+    $calculated_status = 'sap_dien_ra';
+} elseif ($end && $end < $now) {
+    $calculated_status = 'da_ket_thuc';
+}
+
+// Nếu trạng thái tính toán khác DB thì cập nhật và dùng giá trị mới cho view
+if ($calculated_status !== $event['trang_thai']) {
+    $update_stmt = $conn->prepare("UPDATE events SET trang_thai = ? WHERE id = ?");
+    if ($update_stmt) {
+        $update_stmt->bind_param("si", $calculated_status, $event_id);
+        $update_stmt->execute();
+        $update_stmt->close();
+    }
+    $event['trang_thai'] = $calculated_status;
+}
+
 // Đếm số lượng đã đăng ký (tất cả đều đã được duyệt)
 $registered_count = 0;
 $sql_count = "SELECT COUNT(*) as total FROM event_registrations WHERE event_id = ?";
@@ -82,9 +107,26 @@ switch($event['trang_thai']) {
 $event_date = date('d', strtotime($event['thoi_gian_bat_dau']));
 $event_month = 'Tháng ' . date('m', strtotime($event['thoi_gian_bat_dau']));
 $event_year = date('Y', strtotime($event['thoi_gian_bat_dau']));
+
+// Định dạng thời gian hiển thị thống nhất
+function format_datetime_view($value) {
+    return $value ? date('d/m/Y H:i', strtotime($value)) : '';
+}
+
+// Kiểm tra user đã đăng ký sự kiện chưa
+$user_registered = false;
+if (isset($_SESSION['user_id'])) {
+    $stmt = $conn->prepare("SELECT id FROM event_registrations WHERE event_id = ? AND user_id = ?");
+    $stmt->bind_param("ii", $event_id, $_SESSION['user_id']);
+    $stmt->execute();
+    $reg_res = $stmt->get_result();
+    $user_registered = $reg_res && $reg_res->num_rows > 0;
+    $stmt->close();
+}
 ?>
 
 <link rel="stylesheet" href="assets/css/chi_tiet_su_kien.css">
+<?php $csrf_token_value = generate_csrf_token(); ?>
 
 <div class="event-detail-container">
     <!-- HEADER IMAGE -->
@@ -130,10 +172,18 @@ $event_year = date('Y', strtotime($event['thoi_gian_bat_dau']));
                     <i class="icon">🕒</i>
                     <div>
                         <strong>Thời gian</strong>
-                        <p><?php echo date('d/m/Y H:i', strtotime($event['thoi_gian_bat_dau'])); ?></p>
-                        <?php if ($event['thoi_gian_ket_thuc']): ?>
-                        <p class="end-time">→ <?php echo date('d/m/Y H:i', strtotime($event['thoi_gian_ket_thuc'])); ?></p>
-                        <?php endif; ?>
+                        <div class="time-range">
+                            <p>
+                                <span class="label">Bắt đầu:</span>
+                                <span class="value"><?php echo format_datetime_view($event['thoi_gian_bat_dau']); ?></span>
+                            </p>
+                            <?php if ($event['thoi_gian_ket_thuc']): ?>
+                            <p>
+                                <span class="label">Kết thúc:</span>
+                                <span class="value"><?php echo format_datetime_view($event['thoi_gian_ket_thuc']); ?></span>
+                            </p>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
                 
@@ -153,7 +203,7 @@ $event_year = date('Y', strtotime($event['thoi_gian_bat_dau']));
                     <i class="icon">⏰</i>
                     <div>
                         <strong>Hạn đăng ký</strong>
-                        <p><?php echo date('d/m/Y H:i', strtotime($event['han_dang_ky'])); ?></p>
+                        <p class="value"><?php echo format_datetime_view($event['han_dang_ky']); ?></p>
                     </div>
                 </div>
                 <?php endif; ?>
@@ -175,14 +225,21 @@ $event_year = date('Y', strtotime($event['thoi_gian_bat_dau']));
 
             <!-- ACTION BUTTONS -->
             <div class="event-actions">
-                <?php if ($event['trang_thai'] !== 'da_ket_thuc'): ?>
-                <button class="btn-join-large" onclick="joinEvent(<?php echo $event_id; ?>)">
-                    Tham gia sự kiện
-                </button>
+                <?php if ($event['trang_thai'] === 'da_ket_thuc'): ?>
+                    <button class="btn-ended" disabled>
+                        Sự kiện đã kết thúc
+                    </button>
                 <?php else: ?>
-                <button class="btn-ended" disabled>
-                    Sự kiện đã kết thúc
-                </button>
+                    <?php if ($user_registered): ?>
+                        <button class="btn-registered" disabled>Đã đăng ký</button>
+                        <button class="btn-outline" onclick="cancelEvent(<?php echo $event_id; ?>)">
+                            Hủy đăng ký
+                        </button>
+                    <?php else: ?>
+                        <button class="btn-join-large" onclick="joinEvent(<?php echo $event_id; ?>)">
+                            Tham gia sự kiện
+                        </button>
+                    <?php endif; ?>
                 <?php endif; ?>
                 
                 <button class="btn-back" onclick="window.history.back()">
@@ -224,7 +281,7 @@ $event_year = date('Y', strtotime($event['thoi_gian_bat_dau']));
                     </div>
                     <div class="info-row">
                         <span class="label">Đã đăng ký:</span>
-                        <span class="value"><strong><?php echo $registered_count; ?></strong> / <?php echo $event['so_luong_toi_da']; ?> người</span>
+                        <span class="value"><strong class="registered-count-sidebar"><?php echo $registered_count; ?></strong> / <?php echo $event['so_luong_toi_da']; ?> người</span>
                     </div>
                     <div class="info-row">
                         <span class="label">Ngày tạo:</span>
@@ -253,36 +310,132 @@ $event_year = date('Y', strtotime($event['thoi_gian_bat_dau']));
 </div>
 
 <script>
+const CSRF_FIELD = '<?php echo CSRF_TOKEN_NAME; ?>';
+const CSRF_TOKEN = '<?php echo $csrf_token_value; ?>';
+
+function updateSeatUI(delta) {
+    const regEls = document.querySelectorAll('.registered-count, .registered-count-sidebar');
+    regEls.forEach(el => {
+        const current = parseInt(el.textContent || '0', 10);
+        const next = Math.max(0, current + delta);
+        el.textContent = next;
+    });
+}
+
+function getToastContainer() {
+    let c = document.getElementById('toast-container');
+    if (!c) {
+        c = document.createElement('div');
+        c.id = 'toast-container';
+        c.style.position = 'fixed';
+        // Đẩy xuống dưới header để không bị khuất bởi thanh người dùng
+        c.style.top = '88px';
+        c.style.right = '16px';
+        c.style.zIndex = '12000';
+        c.style.display = 'flex';
+        c.style.flexDirection = 'column';
+        c.style.gap = '8px';
+        c.style.pointerEvents = 'none';
+        document.body.appendChild(c);
+    }
+    return c;
+}
+
+function showToast(message, type = 'info') {
+    const container = getToastContainer();
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.padding = '12px 14px';
+    toast.style.borderRadius = '6px';
+    toast.style.boxShadow = '0 4px 12px rgba(0,0,0,0.12)';
+    toast.style.color = '#fff';
+    toast.style.fontSize = '14px';
+    toast.style.maxWidth = '320px';
+    toast.style.wordBreak = 'break-word';
+    const colors = {
+        success: '#2e7d32',
+        error: '#c62828',
+        info: '#1565c0',
+        warning: '#ef6c00'
+    };
+    toast.style.background = colors[type] || colors.info;
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, 2600);
+}
+
 function joinEvent(eventId) {
     <?php if (!isset($_SESSION['user_id'])): ?>
-        alert('Vui lòng đăng nhập để tham gia sự kiện!');
+        showToast('Vui lòng đăng nhập để tham gia sự kiện!', 'warning');
         window.location.href = 'login.php';
         return;
     <?php endif; ?>
     
-    if (confirm('Bạn có chắc chắn muốn tham gia sự kiện này?')) {
-        // Gửi request tham gia sự kiện
-        fetch('process_join_event.php', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: 'event_id=' + eventId
+    if (!confirm('Bạn có chắc chắn muốn tham gia sự kiện này?')) return;
+    fetch('process_join_event.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams({
+            event_id: eventId,
+            [CSRF_FIELD]: CSRF_TOKEN
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Đăng ký tham gia sự kiện thành công!');
-                location.reload();
-            } else {
-                alert(data.message || 'Có lỗi xảy ra!');
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('Đăng ký tham gia sự kiện thành công!', 'success');
+            updateSeatUI(1);
+            const actions = document.querySelector('.event-actions');
+            if (actions) {
+                actions.innerHTML = `
+                    <button class="btn-registered" disabled>Đã đăng ký</button>
+                    <button class="btn-outline" onclick="cancelEvent(${eventId})">Hủy đăng ký</button>
+                    <button class="btn-back" onclick="window.history.back()">← Quay lại</button>
+                `;
             }
+        } else {
+            showToast(data.message || 'Có lỗi xảy ra!', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showToast('Có lỗi xảy ra khi đăng ký!', 'error');
+    });
+}
+
+function cancelEvent(eventId) {
+    if (!confirm('Bạn chắc chắn muốn hủy đăng ký sự kiện này?')) return;
+    fetch('process_cancel_event.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: new URLSearchParams({
+            event_id: eventId,
+            [CSRF_FIELD]: CSRF_TOKEN
         })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Có lỗi xảy ra khi đăng ký!');
-        });
-    }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message || 'Đã hủy đăng ký.', 'success');
+            updateSeatUI(-1);
+            const actions = document.querySelector('.event-actions');
+            if (actions) {
+                actions.innerHTML = `
+                    <button class="btn-join-large" onclick="joinEvent(${eventId})">Tham gia sự kiện</button>
+                    <button class="btn-back" onclick="window.history.back()">← Quay lại</button>
+                `;
+            }
+        } else {
+            showToast(data.message || 'Không thể hủy đăng ký.', 'error');
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        showToast('Lỗi kết nối, vui lòng thử lại.', 'error');
+    });
 }
 
 function shareOnFacebook() {

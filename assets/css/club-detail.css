@@ -522,6 +522,8 @@ body {
     cursor: pointer;
     transition: opacity 0.2s ease;
     white-space: nowrap;
+    text-decoration: none;
+    display: inline-block;
 }
 
 .btn-event-join:hover {

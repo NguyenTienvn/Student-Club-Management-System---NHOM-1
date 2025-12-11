@@ -56,6 +56,10 @@ function format_datetime_local($dt_raw) {
     }
     // Thay T bằng space nếu là giá trị từ input datetime-local
     $dt = str_replace('T', ' ', trim($dt_raw));
+    // Phải có phần giờ/phút; nếu thiếu thì coi như không hợp lệ (tránh ghi chuỗi như "2025")
+    if (strpos($dt, ':') === false) {
+        return null;
+    }
     // Một số browser/datepicker trả về dd/mm/yyyy => đảo lại nếu bắt gặp "/"
     if (strpos($dt, '/') !== false) {
         $ts = DateTime::createFromFormat('d/m/Y h:i A', $dt) ?: DateTime::createFromFormat('d/m/Y H:i', $dt);

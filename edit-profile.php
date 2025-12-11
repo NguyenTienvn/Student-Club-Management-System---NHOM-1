@@ -14,6 +14,8 @@ $user_id = $_SESSION['user_id'];
 
 $success_message = '';
 $error_message = '';
+$error_phone = '';
+$error_student_id = '';
 
 // Lấy thông tin user hiện tại
 $sql = "SELECT * FROM users WHERE id = ?";
@@ -39,6 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error_message = "Vui lòng nhập email!";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error_message = "Email không hợp lệ!";
+    } elseif (!empty($so_dien_thoai) && !preg_match('/^0\d{9}$/', $so_dien_thoai)) {
+        $error_message = "Số điện thoại phải gồm 10 số và bắt đầu bằng 0.";
+        $error_phone = $error_message;
+    } elseif (!empty($student_id) && !preg_match('/^\d+$/', $student_id)) {
+        $error_message = "Mã sinh viên chỉ được chứa số.";
+        $error_student_id = $error_message;
     } else {
         // Kiểm tra email trùng (trừ chính user này)
         $sql = "SELECT id FROM users WHERE email = ? AND id != ?";
@@ -129,18 +137,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
 
             <div class="form-row">
-                <div class="form-group">
-                    <label for="so_dien_thoai">Số điện thoại</label>
-                    <input type="tel" id="so_dien_thoai" name="so_dien_thoai" 
-                           value="<?php echo htmlspecialchars($user['so_dien_thoai'] ?? ''); ?>" 
-                           placeholder="Nhập số điện thoại">
-                </div>
+            <div class="form-group">
+                <label for="so_dien_thoai">Số điện thoại</label>
+                <input type="tel" id="so_dien_thoai" name="so_dien_thoai" 
+                       value="<?php echo htmlspecialchars($user['so_dien_thoai'] ?? ''); ?>" 
+                       placeholder="Nhập số điện thoại"
+                       pattern="0\d{9}"
+                       inputmode="tel">
+                <?php if (!empty($error_phone)): ?>
+                    <span class="error-text"><?php echo htmlspecialchars($error_phone); ?></span>
+                <?php endif; ?>
+                <small id="phone-helper" class="error-text" style="display:none;margin-top:4px;"></small>
+            </div>
 
                 <div class="form-group">
                     <label for="student_id">Mã sinh viên</label>
                     <input type="text" id="student_id" name="student_id" 
-                           value="<?php echo htmlspecialchars($user['student_id'] ?? ''); ?>" 
-                           placeholder="Nhập mã sinh viên">
+                       value="<?php echo htmlspecialchars($user['student_id'] ?? ''); ?>" 
+                       placeholder="Nhập mã sinh viên"
+                       pattern="\d*"
+                       inputmode="numeric">
+                <?php if (!empty($error_student_id)): ?>
+                    <span class="error-text"><?php echo htmlspecialchars($error_student_id); ?></span>
+                <?php endif; ?>
                 </div>
             </div>
 
@@ -201,6 +220,70 @@ if (isSuccess) {
         }, 2000);
     }
 }
+
+// Client-side validate phone number
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('so_dien_thoai');
+    const phoneHelper = document.getElementById('phone-helper');
+    const studentInput = document.getElementById('student_id');
+    const studentHelper = document.createElement('small');
+    if (studentInput) {
+        studentHelper.className = 'error-text';
+        studentHelper.style.display = 'none';
+        studentHelper.style.marginTop = '4px';
+        studentInput.parentNode.appendChild(studentHelper);
+    }
+    const form = phoneInput ? phoneInput.closest('form') : null;
+    const msgInvalid = 'Số điện thoại phải có 10 số và bắt đầu bằng 0.';
+    const regex = /^0\d{9}$/;
+    const msgStudentInvalid = 'Mã sinh viên chỉ được chứa số.';
+
+    function validatePhone() {
+        if (!phoneInput || !phoneHelper) return true;
+        const val = phoneInput.value.trim();
+        if (!val) {
+            phoneHelper.style.display = 'none';
+            return true;
+        }
+        const ok = regex.test(val);
+        phoneHelper.textContent = ok ? '' : msgInvalid;
+        phoneHelper.style.display = ok ? 'none' : 'block';
+        return ok;
+    }
+
+    function validateStudent() {
+        if (!studentInput || !studentHelper) return true;
+        const val = studentInput.value.trim();
+        if (!val) {
+            studentHelper.style.display = 'none';
+            return true;
+        }
+        const ok = /^\d+$/.test(val);
+        studentHelper.textContent = ok ? '' : msgStudentInvalid;
+        studentHelper.style.display = ok ? 'none' : 'block';
+        return ok;
+    }
+
+    if (phoneInput) {
+        phoneInput.addEventListener('input', validatePhone);
+        phoneInput.addEventListener('blur', validatePhone);
+    }
+    if (studentInput) {
+        studentInput.addEventListener('input', validateStudent);
+        studentInput.addEventListener('blur', validateStudent);
+    }
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const phoneOk = validatePhone();
+            const stuOk = validateStudent();
+            if (!phoneOk || !stuOk) {
+                e.preventDefault();
+                if (!phoneOk && phoneInput) phoneInput.focus();
+                else if (!stuOk && studentInput) studentInput.focus();
+            }
+        });
+    }
+});
 </script>
 
 <?php

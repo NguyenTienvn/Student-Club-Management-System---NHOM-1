@@ -8,6 +8,7 @@ if (!isset($_SESSION['temp_username'])) {
 }
 
 $error = $success = '';
+$error_student_id = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     require_once __DIR__ . '/includes/functions.php';
@@ -28,7 +29,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error_email = "Email không hợp lệ!";
     }
 
-    if (empty($error_ho_ten) && empty($error_email)) {
+    // Validate phone if provided
+    $phone_pattern = '/^0\d{9}$/';
+    if (!empty($so_dien_thoai) && !preg_match($phone_pattern, $so_dien_thoai)) {
+        $error_phone = "Số điện thoại phải gồm 10 số và bắt đầu bằng 0.";
+    }
+
+    // Validate student_id if provided: only digits
+    if (!empty($student_id) && !preg_match('/^\d+$/', $student_id)) {
+        $error_student_id = "Mã sinh viên chỉ được chứa số.";
+    }
+
+    if (empty($error_ho_ten) && empty($error_email) && empty($error_phone) && empty($error_student_id)) {
         $result = completeUserProfile(
             $_SESSION['temp_username'], $ho_ten, $email, $so_dien_thoai,
             $student_id, $class, $faculty, $gender
@@ -67,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <?php if ($success): ?>
             <div class="success-message"><?php echo htmlspecialchars($success, ENT_QUOTES, 'UTF-8'); ?><small>Đang chuyển về trang chủ...</small></div>
         <?php else: ?>
-            <form method="POST">
+            <form method="POST" novalidate>
                     <div class="form-row">
                         <div class="form-group">
                             <label>Họ và tên *</label>
@@ -78,17 +90,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                         <div class="form-group">
                             <label>Email *</label>
-                            <input type="email" name="email" value="<?php echo htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                            <input type="text" name="email" value="<?php echo htmlspecialchars($_POST['email'] ?? '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="nhập email: ten@domain.com" autocapitalize="off" autocomplete="email" spellcheck="false">
                             <?php if (!empty($error_email)): ?>
                                 <span class="error-text"><?php echo htmlspecialchars($error_email, ENT_QUOTES, 'UTF-8'); ?></span>
                             <?php endif; ?>
+                            <small id="email-helper" class="error-text" style="display:none;margin-top:4px;"></small>
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
                             <label>Mã sinh viên</label>
-                            <input type="text" name="student_id" value="<?php echo htmlspecialchars($_POST['student_id'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                            <input type="text" name="student_id" pattern="\d*" inputmode="numeric"
+                                   value="<?php echo htmlspecialchars($_POST['student_id'] ?? '', ENT_QUOTES, 'UTF-8'); ?>"
+                                   placeholder="Chỉ nhập số">
+                            <?php if (!empty($error_student_id)): ?>
+                                <span class="error-text"><?php echo htmlspecialchars($error_student_id, ENT_QUOTES, 'UTF-8'); ?></span>
+                            <?php endif; ?>
+                            <small id="student-helper" class="error-text" style="display:none;margin-top:4px;"></small>
                         </div>
                         <div class="form-group">
                             <label>Lớp</label>
@@ -103,7 +122,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                         <div class="form-group">
                             <label>Số điện thoại</label>
-                            <input type="tel" name="so_dien_thoai" value="<?php echo htmlspecialchars($_POST['so_dien_thoai'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                            <input type="tel"
+                                   name="so_dien_thoai"
+                                   id="so_dien_thoai"
+                                   pattern="0\d{9}"
+                                   inputmode="tel"
+                                   placeholder="Nhập 10 số, bắt đầu bằng 0"
+                                   value="<?php echo htmlspecialchars($_POST['so_dien_thoai'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                            <?php if (!empty($error_phone)): ?>
+                                <span class="error-text"><?php echo htmlspecialchars($error_phone, ENT_QUOTES, 'UTF-8'); ?></span>
+                            <?php endif; ?>
+                            <small id="phone-helper" class="error-text" style="display:none;margin-top:4px;"></small>
                         </div>
                     </div>
 
@@ -132,3 +161,95 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </div>
 </body>
 </html>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('so_dien_thoai');
+    const phoneHelper = document.getElementById('phone-helper');
+    const emailInput = document.querySelector('input[name="email"]');
+    const emailHelper = document.getElementById('email-helper');
+    const studentInput = document.querySelector('input[name="student_id"]');
+    const studentHelper = document.getElementById('student-helper');
+    if (!phoneInput || !phoneHelper) return;
+
+    const msgInvalid = 'Số điện thoại phải có 10 số và bắt đầu bằng 0.';
+    const msgEmailInvalid = 'Email phải có dạng ten@domain.com.';
+    const msgStudentInvalid = 'Mã sinh viên chỉ được chứa số.';
+
+    function validatePhone() {
+        const val = phoneInput.value.trim();
+        const regex = /^0\d{9}$/;
+        if (!val) {
+            phoneHelper.style.display = 'none';
+            return true;
+        }
+        if (!regex.test(val)) {
+            phoneHelper.textContent = msgInvalid;
+            phoneHelper.style.display = 'block';
+            return false;
+        }
+        phoneHelper.style.display = 'none';
+        return true;
+    }
+
+    function validateEmail() {
+        if (!emailInput || !emailHelper) return true;
+        const val = emailInput.value.trim();
+        if (!val) {
+            emailHelper.style.display = 'none';
+            emailInput.setCustomValidity('');
+            return true;
+        }
+        const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+        emailHelper.textContent = ok ? '' : msgEmailInvalid;
+        emailHelper.style.display = ok ? 'none' : 'block';
+        emailInput.setCustomValidity(ok ? '' : msgEmailInvalid);
+        return ok;
+    }
+
+    function validateStudent() {
+        if (!studentInput || !studentHelper) return true;
+        const val = studentInput.value.trim();
+        if (!val) {
+            studentHelper.style.display = 'none';
+            studentInput.setCustomValidity('');
+            return true;
+        }
+        const ok = /^\d+$/.test(val);
+        studentHelper.textContent = ok ? '' : msgStudentInvalid;
+        studentHelper.style.display = ok ? 'none' : 'block';
+        studentInput.setCustomValidity(ok ? '' : msgStudentInvalid);
+        return ok;
+    }
+
+    phoneInput.addEventListener('input', validatePhone);
+    phoneInput.addEventListener('blur', validatePhone);
+    if (emailInput) {
+        emailInput.addEventListener('input', validateEmail);
+        emailInput.addEventListener('blur', validateEmail);
+    }
+    if (studentInput) {
+        studentInput.addEventListener('input', validateStudent);
+        studentInput.addEventListener('blur', validateStudent);
+    }
+
+    const form = phoneInput.closest('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const phoneOk = validatePhone();
+            const emailOk = validateEmail();
+            const studentOk = validateStudent();
+            if (!phoneOk || !emailOk || !studentOk) {
+                e.preventDefault();
+                if (!emailOk && emailInput) {
+                    emailInput.focus();
+                } else if (!studentOk && studentInput) {
+                    studentInput.focus();
+                } else {
+                    phoneInput.focus();
+                }
+            }
+        });
+    }
+});
+</script>

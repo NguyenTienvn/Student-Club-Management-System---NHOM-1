@@ -18,15 +18,15 @@ if ($event_id <= 0) {
 }
 
 $page_css = "add_sk.css";
-load_top();
-load_header();
 
 global $conn;
 
-// Lấy thông tin sự kiện
-$sql = "SELECT e.*, c.ten_clb 
+// Lấy thông tin sự kiện (bao gồm ảnh bìa từ media_library)
+$sql = "SELECT e.*, c.ten_clb, c.chu_nhiem_id, 
+               ml.file_path AS anh_bia_path
         FROM events e 
         JOIN clubs c ON e.club_id = c.id 
+        LEFT JOIN media_library ml ON e.anh_bia_id = ml.id
         WHERE e.id = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $event_id);
@@ -40,9 +40,9 @@ if (!$event) {
     exit;
 }
 
-// Kiểm tra quyền chỉnh sửa
+// Kiểm tra quyền chỉnh sửa (trước khi render bất kỳ HTML nào)
 $user_id = $_SESSION['user_id'];
-$check_role_sql = "SELECT vai_tro FROM club_members WHERE club_id = ? AND user_id = ?";
+$check_role_sql = "SELECT vai_tro FROM club_members WHERE club_id = ? AND user_id = ? AND trang_thai = 'dang_hoat_dong'";
 $check_stmt = $conn->prepare($check_role_sql);
 $check_stmt->bind_param("ii", $event['club_id'], $user_id);
 $check_stmt->execute();
@@ -50,12 +50,57 @@ $role_result = $check_stmt->get_result();
 $user_role = $role_result->num_rows > 0 ? $role_result->fetch_assoc()['vai_tro'] : '';
 $check_stmt->close();
 
-$can_edit = ($event['created_by'] == $user_id) || in_array($user_role, ['Đội trưởng', 'Đội phó']);
+// Chuẩn hóa vai trò để so sánh (bao quát nhiều trường hợp)
+function normalize_role_edit($role) {
+    if (empty($role)) return '';
+    $role = trim($role);
+    $role_lower = mb_strtolower($role, 'UTF-8');
+    
+    // Kiểm tra các pattern phổ biến (có dấu và không dấu)
+    if (stripos($role_lower, 'đội phó') !== false || stripos($role_lower, 'doi pho') !== false || 
+        stripos($role_lower, 'doi_pho') !== false || stripos($role_lower, 'pho') !== false) {
+        return 'doi_pho';
+    }
+    if (stripos($role_lower, 'đội trưởng') !== false || stripos($role_lower, 'doi truong') !== false || 
+        stripos($role_lower, 'doi_truong') !== false) {
+        return 'doi_truong';
+    }
+    if (stripos($role_lower, 'trưởng ban') !== false || stripos($role_lower, 'truong ban') !== false || 
+        stripos($role_lower, 'truong_ban') !== false) {
+        return 'truong_ban';
+    }
+    if (stripos($role_lower, 'phó chủ nhiệm') !== false || stripos($role_lower, 'pho chu nhiem') !== false || 
+        stripos($role_lower, 'pho_chu_nhiem') !== false) {
+        return 'pho_chu_nhiem';
+    }
+    if (stripos($role_lower, 'chủ nhiệm') !== false || stripos($role_lower, 'chu nhiem') !== false || 
+        stripos($role_lower, 'chu_nhiem') !== false) {
+        return 'chu_nhiem';
+    }
+    
+    // Nếu là giá trị enum/constant (uppercase)
+    $role_upper = strtoupper($role);
+    if (in_array($role_upper, ['DOI_PHO', 'DOI_TRUONG', 'TRUONG_BAN', 'PHO_CHU_NHIEM', 'CHU_NHIEM'])) {
+        return strtolower($role_upper);
+    }
+    
+    // Fallback: lowercase trực tiếp
+    return strtolower($role);
+}
+
+$role_key = normalize_role_edit($user_role);
+$is_owner = isset($event['chu_nhiem_id']) && ((int)$event['chu_nhiem_id'] === (int)$user_id);
+// Chỉ cho phép Chủ nhiệm / Phó chủ nhiệm / Đội trưởng / Đội phó / Trưởng ban
+$can_edit = $is_owner || in_array($role_key, ['doi_truong', 'doi_pho', 'truong_ban', 'pho_chu_nhiem', 'chu_nhiem']);
 if (!$can_edit) {
     $_SESSION['error'] = "Bạn không có quyền chỉnh sửa sự kiện này";
     header("Location: list_su_kien.php?id=" . $event['club_id']);
     exit;
 }
+
+// Sau khi qua kiểm tra quyền, mới render giao diện
+load_top();
+load_header();
 
 // Format datetime cho input
 function format_for_input($datetime) {
@@ -83,8 +128,8 @@ function format_for_input($datetime) {
             <div class="section-title">📸 Ảnh bìa sự kiện</div>
             
             <div class="current-image">
-                <?php if (!empty($event['anh_bia'])): ?>
-                    <img src="<?= htmlspecialchars($event['anh_bia']) ?>" alt="Ảnh bìa hiện tại" id="preview-image" class="anh_bia">
+                <?php if (!empty($event['anh_bia_path'])): ?>
+                    <img src="<?= htmlspecialchars($event['anh_bia_path']) ?>" alt="Ảnh bìa hiện tại" id="preview-image" class="anh_bia">
                     <p class="image-note">Ảnh bìa hiện tại</p>
                 <?php else: ?>
                     <div class="no-image">Chưa có ảnh bìa</div>
@@ -187,15 +232,27 @@ function format_for_input($datetime) {
 <script>
 function previewNewImage(input) {
     if (input.files && input.files[0]) {
+        // Kiểm tra kích thước file (tối đa 5MB)
+        if (input.files[0].size > 5 * 1024 * 1024) {
+            alert('⚠️ Kích thước ảnh không được vượt quá 5MB!');
+            input.value = '';
+            return;
+        }
+        
         const reader = new FileReader();
         reader.onload = function(e) {
             const preview = document.getElementById('preview-image');
+            const currentImage = document.querySelector('.current-image');
+            
             if (preview) {
+                // Đã có ảnh, chỉ cập nhật src
                 preview.src = e.target.result;
-                const note = document.querySelector('.image-note');
-                if (note) note.textContent = 'Ảnh mới (chưa lưu)';
+                const note = preview.nextElementSibling;
+                if (note && note.classList.contains('image-note')) {
+                    note.textContent = 'Ảnh mới (chưa lưu)';
+                }
             } else {
-                const currentImage = document.querySelector('.current-image');
+                // Chưa có ảnh, tạo mới img element
                 currentImage.innerHTML = `
                     <img src="${e.target.result}" alt="Ảnh mới" id="preview-image" class="anh_bia">
                     <p class="image-note">Ảnh mới (chưa lưu)</p>

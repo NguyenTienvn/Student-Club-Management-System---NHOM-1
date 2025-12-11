@@ -203,12 +203,13 @@ $event_participants = [];
 if ($events && $events->num_rows > 0) {
     $events->data_seek(0);
     while ($event = $events->fetch_assoc()) {
-        $sql = "SELECT COUNT(*) as total FROM event_registrations WHERE event_id = ? AND status = 'da_duyet'";
+        // Đếm tất cả lượt đăng ký (không phụ thuộc trạng thái) để hiển thị đúng số người đã đăng ký
+        $sql = "SELECT COUNT(*) as total FROM event_registrations WHERE event_id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("i", $event['id']);
         $stmt->execute();
         $result = $stmt->get_result()->fetch_assoc();
-        $event_participants[$event['id']] = $result['total'];
+        $event_participants[$event['id']] = (int)($result['total'] ?? 0);
     }
     $events->data_seek(0);
 }
@@ -414,7 +415,9 @@ try {
                                     <span>👥 <?php echo $participants; ?> người tham gia</span>
                                 </div>
                             </div>
-                            <button class="btn-event-join" onclick="joinEvent(<?php echo $event['id']; ?>)">Tham gia</button>
+                            <a class="btn-event-join" href="chi_tiet_su_kien.php?id=<?php echo $event['id']; ?>">
+                                Tham gia
+                            </a>
                         </div>
                         <?php endwhile; ?>
                     <?php else: ?>

@@ -31,6 +31,13 @@ if (!can_manage_club($conn, $_SESSION['user_id'], $club_id)) {
 
 <link rel="stylesheet" href="assets/css/add_TV_CLB.css?v=2">
 <input type="hidden" id="club-id" value="<?php echo htmlspecialchars((string)$club_id, ENT_QUOTES, 'UTF-8'); ?>">
+<?php 
+$csrf_token_value = generate_csrf_token();
+?>
+<script>
+    window.CSRF_FIELD = '<?php echo CSRF_TOKEN_NAME; ?>';
+    window.CSRF_TOKEN = '<?php echo $csrf_token_value; ?>';
+</script>
 
 <div class="addTV-container">
     <div class="addTV-header">
@@ -73,16 +80,25 @@ if (!can_manage_club($conn, $_SESSION['user_id'], $club_id)) {
                 <div class="selected-name" id="selected-name"></div>
                 <div class="selected-email" id="selected-email"></div>
             </div>
-            <button id="btn-add-member" class="btn-add-member">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="8.5" cy="7" r="4"></circle>
-                    <line x1="20" y1="8" x2="20" y2="14"></line>
-                    <line x1="23" y1="11" x2="17" y2="11"></line>
-                </svg>
-                Thêm thành viên
-            </button>
-            <button type="button" onclick="clearSelection()" class="clear-selection" title="Hủy chọn">×</button>
+            <div class="selected-actions">
+                <label for="department-select">Phòng ban *</label>
+                <select id="department-select" required>
+                    <option value="">-- Chọn phòng ban --</option>
+                </select>
+                <small class="helper-text" id="dept-helper">Bắt buộc trước khi thêm</small>
+            </div>
+            <div class="selected-buttons">
+                <button id="btn-add-member" class="btn-add-member">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <line x1="20" y1="8" x2="20" y2="14"></line>
+                        <line x1="23" y1="11" x2="17" y2="11"></line>
+                    </svg>
+                    Thêm thành viên
+                </button>
+                <button type="button" onclick="clearSelection()" class="clear-selection" title="Hủy chọn">×</button>
+            </div>
         </div>
 
         <!-- Kết quả tìm kiếm -->
@@ -180,6 +196,8 @@ if (!can_manage_club($conn, $_SESSION['user_id'], $club_id)) {
     const selectedBox = document.getElementById('selected-user-box');
     const selectedName = document.getElementById('selected-name');
     const selectedEmail = document.getElementById('selected-email');
+    const deptSelect = document.getElementById('department-select');
+    const deptHelper = document.getElementById('dept-helper');
     const btnAddMember = document.getElementById('btn-add-member');
     const clubId = document.getElementById('club-id').value;
 
@@ -202,6 +220,7 @@ if (!can_manage_club($conn, $_SESSION['user_id'], $club_id)) {
         selectedBox.style.display = 'none';
         defaultUsersBox.style.display = 'block';
         suggestionsBox.innerHTML = '';
+        if (deptSelect) deptSelect.value = '';
         document.querySelectorAll('.user-card').forEach(c => c.style.borderColor = '#ddd');
     };
 
@@ -216,6 +235,7 @@ if (!can_manage_club($conn, $_SESSION['user_id'], $club_id)) {
         suggestionsBox.style.display = 'none';
         defaultUsersBox.style.display = 'none';
         searchInput.value = '';
+        if (deptSelect) deptSelect.value = '';
 
         document.querySelectorAll('.user-card').forEach(c => c.style.borderColor = '#ddd');
         if (element) element.style.borderColor = '#2196F3';
@@ -297,28 +317,83 @@ if (!can_manage_club($conn, $_SESSION['user_id'], $club_id)) {
         performSearch(this.value.trim());
     }, 300));
 
+    // Tải danh sách phòng ban
+    async function loadDepartments() {
+        if (!deptSelect) return;
+        try {
+            const res = await fetch(`api/get_departments.php?club_id=${clubId}`);
+            const data = await res.json();
+            if (!data.success || !Array.isArray(data.departments)) {
+                deptHelper.textContent = 'Không tải được phòng ban, hãy thử lại.';
+                return;
+            }
+            deptSelect.innerHTML = '<option value="">-- Chọn phòng ban --</option>';
+            if (data.departments.length === 0) {
+                deptHelper.textContent = 'Chưa có phòng ban. Tạo phòng ban trước khi thêm.';
+                deptSelect.disabled = true;
+                return;
+            }
+            data.departments.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d.id;
+                opt.textContent = d.ten_phong_ban;
+                deptSelect.appendChild(opt);
+            });
+        } catch (err) {
+            console.error(err);
+            deptHelper.textContent = 'Lỗi khi tải phòng ban.';
+        }
+    }
+    loadDepartments();
+
     // Thêm thành viên
     btnAddMember.addEventListener('click', function () {
         if (!selectedUser) return showNotification('Vui lòng chọn thành viên!', 'warning');
+        const phongBanId = deptSelect ? deptSelect.value : '';
+        if (!phongBanId) return showNotification('Vui lòng chọn phòng ban trước khi thêm!', 'warning');
 
         btnAddMember.disabled = true;
         btnAddMember.innerHTML = '<span class="spinner"></span> Đang thêm...';
 
+        const formData = new URLSearchParams();
+        formData.append('club_id', clubId);
+        formData.append('user_id', selectedUser.userId);
+        formData.append('phong_ban_id', phongBanId);
+        if (window.CSRF_FIELD && window.CSRF_TOKEN) {
+            formData.append(window.CSRF_FIELD, window.CSRF_TOKEN);
+        }
+
         fetch('api/add_member.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'club_id=' + clubId + '&user_id=' + selectedUser.userId
+            body: formData.toString()
         })
         .then(res => {
-            if (!res.ok) throw new Error('HTTP ' + res.status);
+            if (!res.ok) {
+                throw new Error('HTTP ' + res.status);
+            }
             return res.json();
         })
         .then(data => {
-            if (data.success) {
-                showNotification('✓ Thêm thành viên thành công! Thành viên đã nhận được thông báo.', 'success');
-                setTimeout(() => location.reload(), 1500);
+            if (data && data.success) {
+                showNotification('✓ Đã thêm thành công!', 'success');
+                
+                // Xóa user card khỏi danh sách ngay lập tức (không cần reload)
+                const userCard = document.querySelector(`.user-card[data-userid="${selectedUser.userId}"]`);
+                if (userCard) {
+                    userCard.style.transition = 'opacity 0.3s, transform 0.3s';
+                    userCard.style.opacity = '0';
+                    userCard.style.transform = 'scale(0.9)';
+                    setTimeout(() => userCard.remove(), 300);
+                }
+                
+                // Xóa selection và reset form
+                clearSelection();
+                
+                // Reload sau 1 giây (nhanh hơn) để cập nhật danh sách gợi ý
+                setTimeout(() => location.reload(), 1000);
             } else {
-                showNotification('✗ ' + (data.message || 'Không xác định'), 'error');
+                showNotification('✗ ' + (data?.message || 'Có lỗi xảy ra'), 'error');
                 btnAddMember.disabled = false;
                 btnAddMember.innerHTML = `
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -349,15 +424,41 @@ if (!can_manage_club($conn, $_SESSION['user_id'], $club_id)) {
 
     // Hàm hiển thị thông báo
     function showNotification(message, type = 'info') {
+        // Xóa notification cũ nếu có
+        const oldNotifs = document.querySelectorAll('.notification');
+        oldNotifs.forEach(n => n.remove());
+
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
-        notification.textContent = message;
+        
+        // Thêm icon và styling tốt hơn
+        const icons = {
+            success: '✓',
+            error: '✗',
+            warning: '⚠',
+            info: 'ℹ'
+        };
+        
+        notification.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-size: 20px; font-weight: bold;">${icons[type] || icons.info}</span>
+                <span style="flex: 1;">${message}</span>
+            </div>
+        `;
+        
         document.body.appendChild(notification);
 
+        // Hiển thị ngay lập tức (không cần requestAnimationFrame)
         setTimeout(() => notification.classList.add('show'), 10);
+        
+        // Tự động ẩn sau 3 giây
         setTimeout(() => {
             notification.classList.remove('show');
-            setTimeout(() => notification.remove(), 300);
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
         }, 3000);
     }
 });

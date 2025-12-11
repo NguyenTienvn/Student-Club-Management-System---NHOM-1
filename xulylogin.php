@@ -20,15 +20,20 @@ function loginUser($username, $password, $remember = false) {
     if ($result->num_rows === 1) {
         $user = $result->fetch_assoc();
         
-        // Kiểm tra mật khẩu: hỗ trợ cả plain text và hash
+        // Kiểm tra mật khẩu: ưu tiên hash, tự động chuyển plain-text sang hash để vá lỗ hổng lưu mật khẩu trần
         $password_match = false;
+        $is_hashed = substr($user['password'], 0, 4) === '$2y$';
         
-        // Kiểm tra nếu là password hash (bắt đầu với $2y$)
-        if (substr($user['password'], 0, 4) === '$2y$') {
+        if ($is_hashed) {
             $password_match = password_verify($password, $user['password']);
-        } else {
-            // Plain text password
-            $password_match = ($password === $user['password']);
+        } elseif ($password === $user['password']) {
+            $password_match = true;
+            // Nâng cấp sang bcrypt ngay sau lần đăng nhập thành công
+            $new_hash = password_hash($password, PASSWORD_DEFAULT);
+            $rehash_stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+            $rehash_stmt->bind_param("si", $new_hash, $user['id']);
+            $rehash_stmt->execute();
+            $rehash_stmt->close();
         }
         
         if ($password_match) {
@@ -208,8 +213,14 @@ function logout() {
     // Destroy session
     session_unset();
     session_destroy();
-    
-    header("Location: login.php");
+
+    // Redirect về trang đăng nhập với đường dẫn tuyệt đối, chuẩn hóa slash để tránh 403
+    $appRoot = str_replace('\\', '/', APP_ROOT);
+    $docRoot = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT'] ?? ''), '/');
+    $projectPath = ltrim(str_replace($docRoot, '', $appRoot), '/');
+    $projectPath = $projectPath ? '/' . $projectPath : '';
+    $loginUrl = $projectPath . '/login.php';
+    header("Location: $loginUrl");
     exit();
 }
 

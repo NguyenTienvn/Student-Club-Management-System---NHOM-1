@@ -53,6 +53,29 @@ if ($result->num_rows == 0) {
 
 $club = $result->fetch_assoc();
 
+// Tự động đếm số lượng thành viên thực tế từ club_members
+$count_members_sql = "SELECT COUNT(*) as total FROM club_members WHERE club_id = ? AND trang_thai = 'dang_hoat_dong'";
+$count_stmt = $conn->prepare($count_members_sql);
+$count_stmt->bind_param("i", $club_id);
+$count_stmt->execute();
+$count_result = $count_stmt->get_result();
+$actual_member_count = 0;
+if ($count_result->num_rows > 0) {
+    $count_data = $count_result->fetch_assoc();
+    $actual_member_count = (int)$count_data['total'];
+}
+$count_stmt->close();
+
+// Cập nhật số lượng thành viên trong database nếu khác với thực tế
+if ($actual_member_count != ($club['so_thanh_vien'] ?? 0)) {
+    $update_count_sql = "UPDATE clubs SET so_thanh_vien = ? WHERE id = ?";
+    $update_stmt = $conn->prepare($update_count_sql);
+    $update_stmt->bind_param("ii", $actual_member_count, $club_id);
+    $update_stmt->execute();
+    $update_stmt->close();
+    $club['so_thanh_vien'] = $actual_member_count;
+}
+
 // Set default values
 $club['contact_email'] = $club['contact_email'] ?? '';
 $club['contact_phone'] = $club['contact_phone'] ?? '';
@@ -75,6 +98,40 @@ $logo_display = $club['logo_path'] ?? '';
             <h2>Hoàn thiện thông tin câu lạc bộ</h2>
             <p class="form-subtitle">Cập nhật thông tin chi tiết cho câu lạc bộ của bạn</p>
         </div>
+
+        <?php
+        // Hiển thị flash message nếu có
+        $flash = get_flash_message();
+        if ($flash):
+            $message = $flash['message'];
+            $type = $flash['type'];
+            $bg_color = $type === 'success' ? '#10b981' : ($type === 'error' ? '#ef4444' : '#3b82f6');
+        ?>
+            <div class="flash-message" id="flashMessage" style="background: <?= $bg_color ?>; color: white; padding: 16px 20px; border-radius: 12px; margin-bottom: 24px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <?php if ($type === 'success'): ?>
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    <?php else: ?>
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    <?php endif; ?>
+                </svg>
+                <span style="flex: 1; font-weight: 500;"><?= htmlspecialchars($message) ?></span>
+                <button onclick="document.getElementById('flashMessage').remove()" style="background: none; border: none; color: white; cursor: pointer; padding: 4px; opacity: 0.8; hover:opacity: 1;">&times;</button>
+            </div>
+            <script>
+                // Tự động ẩn sau 5 giây
+                setTimeout(() => {
+                    const msg = document.getElementById('flashMessage');
+                    if (msg) {
+                        msg.style.transition = 'opacity 0.3s';
+                        msg.style.opacity = '0';
+                        setTimeout(() => msg.remove(), 300);
+                    }
+                }, 5000);
+            </script>
+        <?php endif; ?>
 
         <form action="edit_inf_CLB_xuli.php" method="POST" enctype="multipart/form-data" class="edit-form">
             <input type="hidden" name="club_id" value="<?= $club['id'] ?>">
@@ -135,8 +192,9 @@ $logo_display = $club['logo_path'] ?? '';
                     </div>
 
                     <div class="form-group">
-                        <label>Số lượng thành viên</label>
-                        <input type="number" name="so_thanh_vien" value="<?= $club['so_thanh_vien'] ?>" min="1">
+                        <label>Số lượng thành viên <span style="color: #94a3b8; font-weight: normal; font-size: 13px;">(Tự động cập nhật)</span></label>
+                        <input type="number" name="so_thanh_vien" value="<?= $club['so_thanh_vien'] ?>" min="0" readonly style="background-color: #f1f5f9; cursor: not-allowed;">
+                        <small style="color: #64748b; font-size: 12px; display: block; margin-top: 4px;">Số lượng thành viên được tự động tính từ danh sách thành viên đang hoạt động</small>
                     </div>
                 </div>
 

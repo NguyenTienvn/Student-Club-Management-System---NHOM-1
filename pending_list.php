@@ -44,12 +44,14 @@ if (!$club_id) {
 
 // Lấy danh sách thành viên chờ duyệt
 $stmt = $conn->prepare("
-    SELECT cm.id, cm.user_id, cm.so_dien_thoai, cm.loi_nhan, cm.phong_ban_id,
-           u.ho_ten, u.username, u.email,
-           pb.ten_phong_ban
+    SELECT cm.id, cm.user_id, cm.phong_ban_id,
+           u.ho_ten, u.username, u.email, u.so_dien_thoai,
+           pb.ten_phong_ban,
+           jr.loi_nhan
     FROM club_members cm
     JOIN users u ON cm.user_id = u.id
     LEFT JOIN phong_ban pb ON cm.phong_ban_id = pb.id
+    LEFT JOIN join_requests jr ON jr.club_id = cm.club_id AND jr.user_id = cm.user_id AND jr.trang_thai = 'cho_duyet'
     WHERE cm.club_id = ? AND cm.trang_thai = 'cho_duyet'
     ORDER BY cm.joined_at DESC
 ");

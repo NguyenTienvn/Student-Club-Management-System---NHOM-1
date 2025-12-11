@@ -41,6 +41,10 @@ $username_error = "";
 $password_error = "";
 // Xử lý đăng nhập
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
+    // Rate limit để tránh brute force
+    if (!check_rate_limit('login_attempt', 5, 300)) {
+        $username_error = "Quá nhiều lần thử. Vui lòng thử lại sau vài phút.";
+    } else {
     $username = sanitize_input(trim($_POST['username']));
     $password = $_POST['password'];
     
@@ -73,6 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['login'])) {
             }
         }
     }
+}
 }
 ?>
     <div class="container">

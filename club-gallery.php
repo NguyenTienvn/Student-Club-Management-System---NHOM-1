@@ -1,6 +1,7 @@
 <?php
 session_start();
 require 'site.php';
+require_once __DIR__ . '/includes/functions.php';
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -24,19 +25,7 @@ if (!$club) {
 }
 
 // Kiểm tra user có phải ban quản lý không (chỉ đội trưởng hoặc admin mới upload được)
-$is_admin = false;
-
-// Kiểm tra xem user có phải đội trưởng không
-if ($club['chu_nhiem_id'] == $user_id) {
-    $is_admin = true;
-} else {
-    // Kiểm tra trong bảng club_members với vai trò admin/owner
-    $sql = "SELECT * FROM club_members WHERE club_id = ? AND user_id = ? AND vai_tro IN ('admin', 'owner')";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ii", $club_id, $user_id);
-    $stmt->execute();
-    $is_admin = $stmt->get_result()->num_rows > 0;
-}
+$is_admin = can_manage_club($conn, $user_id, $club_id);
 
 // Kiểm tra chế độ xem: view (chỉ xem) hoặc manage (quản lý)
 $mode = $_GET['mode'] ?? 'view';
@@ -116,7 +105,7 @@ load_header();
                 $img_src = 'assets/img/default-club.png';
             }
         ?>
-        <div class="gallery-item" onclick="openLightbox(<?= $photo['id'] ?>)">
+        <div class="gallery-item" id="gallery-item-<?= $photo['id'] ?>" data-id="<?= $photo['id'] ?>" onclick="openLightbox(<?= $photo['id'] ?>)">
             <img src="<?= htmlspecialchars($img_src) ?>" 
                  alt="<?= htmlspecialchars($photo['title'] ?? 'Ảnh CLB') ?>"
                  loading="lazy">
@@ -126,6 +115,9 @@ load_header();
                 <div class="item-meta">
                     <span>📅 <?= $upload_date->format('d/m/Y') ?></span>
                 </div>
+                <?php if ($is_admin && $mode === 'manage'): ?>
+                <button class="btn-delete-thumb" onclick="event.stopPropagation(); deletePhotoById(<?= $photo['id'] ?>);">🗑️</button>
+                <?php endif; ?>
             </div>
         </div>
         <?php endwhile; ?>
@@ -196,12 +188,21 @@ load_header();
                 <span id="lightboxUploader"></span>
                 <span id="lightboxDate"></span>
             </div>
+            <?php if ($is_admin && $mode === 'manage'): ?>
+            <button class="btn-delete" onclick="deletePhoto(currentImageIndex)" id="lightboxDeleteBtn">🗑️ Xóa ảnh</button>
+            <?php endif; ?>
         </div>
     </div>
     <button class="lightbox-prev" onclick="prevImage()">❮</button>
     <button class="lightbox-next" onclick="nextImage()">❯</button>
 </div>
 
+<script>
+  const CSRF_FIELD = '<?php echo CSRF_TOKEN_NAME; ?>';
+  const CSRF_TOKEN = '<?php echo generate_csrf_token(); ?>';
+  const CAN_MANAGE_GALLERY = <?php echo ($is_admin && $mode === 'manage') ? 'true' : 'false'; ?>;
+  const CLUB_ID = <?php echo (int)$club_id; ?>;
+</script>
 <script src="assets/js/club-gallery.js"></script>
 
 <?php

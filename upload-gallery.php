@@ -23,26 +23,8 @@ if ($club_id <= 0) {
     redirect('myclub.php', 'Không tìm thấy câu lạc bộ!', 'error');
 }
 
-// Kiểm tra user có phải ban quản lý không (chỉ đội trưởng hoặc admin)
-$sql = "SELECT chu_nhiem_id FROM clubs WHERE id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $club_id);
-$stmt->execute();
-$club = $stmt->get_result()->fetch_assoc();
-
-$is_admin = false;
-if ($club && $club['chu_nhiem_id'] == $user_id) {
-    $is_admin = true;
-} else {
-    // Kiểm tra admin trong club_members
-    $sql = "SELECT * FROM club_members WHERE club_id = ? AND user_id = ? AND vai_tro IN ('admin', 'owner')";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ii", $club_id, $user_id);
-    $stmt->execute();
-    $is_admin = $stmt->get_result()->num_rows > 0;
-}
-
-if (!$is_admin) {
+// Kiểm tra quyền quản lý CLB (dùng chuẩn vai trò)
+if (!can_manage_club($conn, $user_id, $club_id)) {
     redirect("club-detail.php?id=$club_id", 'Chỉ ban quản lý CLB mới có quyền upload ảnh!', 'error');
 }
 

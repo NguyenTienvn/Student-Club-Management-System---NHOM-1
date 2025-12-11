@@ -99,9 +99,15 @@ load_header();
             <p class="team-role">Thành viên</p>
             <p class="team-desc">Phát triển backend và database</p>
             <div class="team-social">
-                <a href="#"><i class="ri-github-fill"></i></a>
-                <a href="#"><i class="ri-facebook-fill"></i></a>
-                <a href="#"><i class="ri-mail-fill"></i></a>
+            <a href="https://github.com/thuytrang2005" target="_blank">
+                    <i class="ri-github-fill"></i>
+                </a>
+                <a href="https://www.facebook.com/thuytrang24072005/" target="_blank">
+                    <i class="ri-facebook-fill"></i>
+                </a>
+                <a href="mailto:trangtruong24072005@gmail.com" target="_blank">
+                    <i class="ri-mail-fill"></i>
+                </a>
             </div>
         </div>
 
@@ -113,9 +119,15 @@ load_header();
             <p class="team-role">Thành viên</p>
             <p class="team-desc">Thiết kế UI/UX và trải nghiệm</p>
             <div class="team-social">
-                <a href="#"><i class="ri-github-fill"></i></a>
-                <a href="#"><i class="ri-facebook-fill"></i></a>
-                <a href="#"><i class="ri-mail-fill"></i></a>
+            <a href="https://github.com/uyentrang247" target="_blank">
+                    <i class="ri-github-fill"></i>
+                </a>
+                <a href="https://www.facebook.com/trangg.247/" target="_blank">
+                    <i class="ri-facebook-fill"></i>
+                </a>
+                <a href="mailto:uyentrang2475@gmail.com" target="_blank">
+                    <i class="ri-mail-fill"></i>
+                </a>
             </div>
         </div>
     </div>
